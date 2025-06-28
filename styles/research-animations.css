@@ -1,0 +1,423 @@
+/* ==========================================
+   研究エージェント専用アニメーション CSS
+   ========================================== */
+
+/* 基本キーフレーム定義 */
+
+/* パルスアニメーション - 検索中表示 */
+@keyframes research-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.05);
+  }
+}
+
+/* シマーアニメーション - ローディング効果 */
+@keyframes research-shimmer {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+
+/* 進捗バーアニメーション */
+@keyframes research-progress {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(0%);
+  }
+}
+
+/* タイピングアニメーション - テキスト表示効果 */
+@keyframes research-typing {
+  0% {
+    width: 0;
+  }
+  100% {
+    width: 100%;
+  }
+}
+
+/* バウンスアニメーション - 完了時の効果 */
+@keyframes research-bounce {
+  0%, 20%, 53%, 80%, 100% {
+    animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
+    transform: translate3d(0, 0, 0);
+  }
+  40%, 43% {
+    animation-timing-function: cubic-bezier(0.755, 0.05, 0.855, 0.06);
+    transform: translate3d(0, -30px, 0);
+  }
+  70% {
+    animation-timing-function: cubic-bezier(0.755, 0.05, 0.855, 0.06);
+    transform: translate3d(0, -15px, 0);
+  }
+  90% {
+    transform: translate3d(0, -4px, 0);
+  }
+}
+
+/* フェードインアニメーション */
+@keyframes research-fade-in {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* スライドアップアニメーション */
+@keyframes research-slide-up {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 回転アニメーション - 検索アイコン */
+@keyframes research-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* グローアニメーション - 重要な要素のハイライト */
+@keyframes research-glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(139, 92, 246, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.6), 0 0 30px rgba(139, 92, 246, 0.4);
+  }
+}
+
+/* ウェーブアニメーション - 進捗波形効果 */
+@keyframes research-wave {
+  0% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* ==========================================
+   アニメーションクラス定義
+   ========================================== */
+
+/* パルス効果 */
+.research-pulse {
+  animation: research-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* 高速パルス（緊急時） */
+.research-pulse-fast {
+  animation: research-pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* シマー効果 */
+.research-shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(139, 92, 246, 0.3) 50%,
+    transparent 100%
+  );
+  background-size: 200px 100%;
+  animation: research-shimmer 1.5s ease-in-out infinite;
+}
+
+/* 進捗バー */
+.research-progress-bar {
+  animation: research-progress 0.8s ease-out;
+}
+
+/* タイピング効果 */
+.research-typing {
+  overflow: hidden;
+  border-right: 2px solid #8B5CF6;
+  white-space: nowrap;
+  animation: research-typing 2s steps(30, end),
+             research-blink-caret 1s step-end infinite;
+}
+
+@keyframes research-blink-caret {
+  from, to {
+    border-color: transparent;
+  }
+  50% {
+    border-color: #8B5CF6;
+  }
+}
+
+/* バウンス効果 */
+.research-bounce {
+  animation: research-bounce 1s ease-in-out;
+}
+
+/* フェードイン */
+.research-fade-in {
+  animation: research-fade-in 0.6s ease-out;
+}
+
+/* スライドアップ */
+.research-slide-up {
+  animation: research-slide-up 0.8s ease-out;
+}
+
+/* スピン（ローディング） */
+.research-spin {
+  animation: research-spin 1s linear infinite;
+}
+
+/* グロー効果 */
+.research-glow {
+  animation: research-glow 2s ease-in-out infinite;
+}
+
+/* ウェーブ効果 */
+.research-wave {
+  animation: research-wave 2s ease-in-out infinite;
+}
+
+/* ==========================================
+   組み合わせアニメーション効果
+   ========================================== */
+
+/* 検索開始時のアニメーション */
+.research-search-start {
+  animation: research-fade-in 0.4s ease-out,
+             research-glow 2s ease-in-out infinite 0.4s;
+}
+
+/* 検索完了時のアニメーション */
+.research-search-complete {
+  animation: research-bounce 0.8s ease-out,
+             research-fade-in 0.3s ease-out;
+}
+
+/* レポート表示時のアニメーション */
+.research-report-appear {
+  animation: research-slide-up 0.8s ease-out,
+             research-fade-in 0.6s ease-out;
+}
+
+/* エラー時のアニメーション */
+.research-error-shake {
+  animation: research-shake 0.5s ease-in-out;
+}
+
+@keyframes research-shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-3px);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(3px);
+  }
+}
+
+/* ==========================================
+   進捗専用アニメーション
+   ========================================== */
+
+/* 進捗ドット（3個のドット） */
+.research-progress-dots {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.research-progress-dots::before,
+.research-progress-dots::after {
+  content: '';
+  width: 6px;
+  height: 6px;
+  background-color: #8B5CF6;
+  border-radius: 50%;
+  animation: research-bounce-dot 1.4s ease-in-out infinite both;
+}
+
+.research-progress-dots::before {
+  animation-delay: 0s;
+}
+
+.research-progress-dots::after {
+  animation-delay: 0.32s;
+}
+
+@keyframes research-bounce-dot {
+  0%, 80%, 100% {
+    transform: scale(0);
+    opacity: 0.5;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* 検索リング */
+.research-search-ring {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(139, 92, 246, 0.2);
+  border-left-color: #8B5CF6;
+  border-radius: 50%;
+  animation: research-spin 1s linear infinite;
+}
+
+/* 進捗波形 */
+.research-progress-wave {
+  position: relative;
+  overflow: hidden;
+}
+
+.research-progress-wave::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(139, 92, 246, 0.6) 50%,
+    transparent 100%
+  );
+  animation: research-wave 2s ease-in-out infinite;
+}
+
+/* ==========================================
+   ホバー・フォーカス効果
+   ========================================== */
+
+/* ボタンホバー効果 */
+.research-button-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.research-button-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(139, 92, 246, 0.3);
+}
+
+.research-button-hover:active {
+  transform: translateY(0);
+  transition-duration: 0.1s;
+}
+
+/* カードホバー効果 */
+.research-card-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.research-card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(139, 92, 246, 0.15);
+}
+
+/* 入力フィールドフォーカス効果 */
+.research-input-focus {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.research-input-focus:focus {
+  transform: scale(1.02);
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+}
+
+/* ==========================================
+   レスポンシブアニメーション調整
+   ========================================== */
+
+/* モバイル端末でのアニメーション軽量化 */
+@media (max-width: 768px) {
+  .research-shimmer,
+  .research-wave,
+  .research-glow {
+    animation-duration: 1s;
+  }
+  
+  .research-bounce,
+  .research-slide-up {
+    animation-duration: 0.4s;
+  }
+}
+
+/* アニメーション無効設定に対応 */
+@media (prefers-reduced-motion: reduce) {
+  .research-pulse,
+  .research-shimmer,
+  .research-spin,
+  .research-glow,
+  .research-wave,
+  .research-bounce {
+    animation: none;
+  }
+  
+  .research-fade-in,
+  .research-slide-up {
+    animation: research-fade-in 0.2s ease-out;
+  }
+}
+
+/* ==========================================
+   ダークモード調整
+   ========================================== */
+
+@media (prefers-color-scheme: dark) {
+  .research-shimmer {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(167, 139, 250, 0.3) 50%,
+      transparent 100%
+    );
+  }
+  
+  .research-progress-wave::before {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(167, 139, 250, 0.6) 50%,
+      transparent 100%
+    );
+  }
+  
+  .research-glow {
+    animation: research-glow-dark 2s ease-in-out infinite;
+  }
+}
+
+@keyframes research-glow-dark {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(167, 139, 250, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(167, 139, 250, 0.6), 0 0 30px rgba(167, 139, 250, 0.4);
+  }
+} 
