@@ -1,10 +1,9 @@
 "use client";
 
-import { Search, CheckCircle, Clock, Globe, Loader2, Activity, TrendingUp } from "lucide-react";
+import { Search, CheckCircle, Clock, Globe, Activity, TrendingUp } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { getResearchTheme } from '@/lib/constants/research-theme';
 
 interface ProgressData {
   currentSearch: number;
@@ -33,9 +32,6 @@ export function ResearchProgress({
     status
   } = progressData;
   
-  // テーマ取得
-  const theme = getResearchTheme();
-
   const progressPercentage = totalSearches > 0 
     ? Math.round((currentSearch / totalSearches) * 100) 
     : 0;

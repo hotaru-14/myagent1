@@ -2,8 +2,7 @@
 // エージェントフォールバック戦略システム
 // ==========================================
 
-import type { Agent, AgentChangeEvent } from '@/lib/types/agent';
-import { getAgentById, getAllAgents, DEFAULT_AGENT_ID } from '@/lib/constants/agents';
+import { DEFAULT_AGENT_ID } from '@/lib/constants/agents';
 import { validateAgentId, VALIDATION_ERROR_CODES } from './agent-validation';
 
 // ==========================================
@@ -123,7 +122,7 @@ export const FALLBACK_STRATEGIES: FallbackStrategy[] = [
   {
     name: 'SimilarAgentFallback',
     priority: 4,
-    condition: (agentId, context) => {
+    condition: (agentId, _context) => {
       const validation = validateAgentId(agentId);
       return Boolean(
         !validation.isValid && 

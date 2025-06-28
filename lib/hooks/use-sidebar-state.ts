@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from 'react';
-import type { SidebarState, SidebarPreferences, SidebarConfig } from '@/lib/types/sidebar';
+import type { SidebarState, SidebarConfig } from '@/lib/types/sidebar';
 
 const DEFAULT_CONFIG: SidebarConfig = {
   position: 'left',

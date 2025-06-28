@@ -8,7 +8,6 @@ import React, { createContext, useContext, useReducer, useCallback, useEffect, R
 import type { Agent, AgentState, AgentChangeEvent } from '@/lib/types/agent';
 import { DEFAULT_AGENT_ID, getAgentById, getAllAgents } from '@/lib/constants/agents';
 import { determineFallbackStrategy, type FallbackReason } from '@/lib/utils/agent-fallback';
-import { validateAgentId } from '@/lib/utils/agent-validation';
 
 // ==========================================
 // 状態とアクションの型定義

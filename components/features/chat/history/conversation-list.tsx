@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect } from "react";
+import { memo } from 'react';
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ConversationItem } from "./conversation-item";
-import type { ConversationWithDetails } from "@/lib/types/chat";
+import { ConversationItem } from './conversation-item';
+import type { ConversationWithDetails } from '@/lib/types/chat';
 
 interface ConversationListProps {
   conversations: ConversationWithDetails[];
@@ -34,7 +34,7 @@ export function ConversationList({
   }
 
   return (
-    <ScrollArea className={className}>
+    <div className={className}>
       <div className="space-y-1 p-2">
         {conversations.map((conversation) => (
           <ConversationItem
@@ -46,6 +46,6 @@ export function ConversationList({
           />
         ))}
       </div>
-    </ScrollArea>
+    </div>
   );
 } 

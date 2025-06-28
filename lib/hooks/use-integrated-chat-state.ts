@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { useSidebarState } from './use-sidebar-state';
 import { useGlobalAgentState } from '@/lib/contexts/agent-context';
 import { useConversationManager } from './use-conversation-manager';

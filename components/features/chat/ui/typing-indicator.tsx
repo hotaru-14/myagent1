@@ -1,6 +1,6 @@
 "use client";
 
-import { Bot } from "lucide-react";
+import { LoaderIcon } from "lucide-react";
 import { MessageAvatar } from "../message/message-avatar";
 
 interface TypingIndicatorProps {

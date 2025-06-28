@@ -12,8 +12,6 @@ interface MessageListProps {
   isLoading?: boolean;
   conversationId?: string;
   enableMarkdown?: boolean;
-  emptyStateTitle?: string;
-  emptyStateDescription?: string;
   className?: string;
 }
 
@@ -22,8 +20,6 @@ export function MessageList({
   isLoading = false,
   conversationId,
   enableMarkdown = true,
-  emptyStateTitle,
-  emptyStateDescription,
   className = ""
 }: MessageListProps) {
   // 自動スクロール機能を設定

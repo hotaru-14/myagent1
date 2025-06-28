@@ -6,17 +6,15 @@ import { CardHeader, CardTitle } from "@/components/ui/card";
 import { AgentDropdown } from "./agent-selector/agent-dropdown";
 import { AgentDropdownCompact } from "./agent-selector/agent-dropdown-compact";
 import { useGlobalAgentState } from "@/lib/contexts/agent-context";
-import { getAgentById } from "@/lib/constants/agents";
+
 import type { Agent } from "@/lib/types/agent";
 
 interface ChatHeaderProps {
   title?: string;
   subtitle?: string;
-  description?: string;
   showHistoryButton?: boolean;
   onHistoryToggle?: () => void;
   currentConversationTitle?: string;
-  currentAgentId?: string;
   onAgentChange?: (agentId: string) => void;
   showSettings?: boolean;
   onSettingsClick?: () => void;
@@ -26,11 +24,9 @@ interface ChatHeaderProps {
 export function ChatHeader({
   title,
   subtitle,
-  description,
   showHistoryButton = false,
   onHistoryToggle,
   currentConversationTitle,
-  currentAgentId,
   onAgentChange,
   showSettings = false,
   onSettingsClick,

@@ -13,10 +13,10 @@ import { ErrorMessage } from '../ui/error-message';
 
 interface ChatMainContainerProps {
   // 新しい統合プロパティ（オプション）
-  sidebarState?: any;
-  agentState?: any;
-  conversationManager?: any;
-  chatInputManager?: any;
+  sidebarState?: ReturnType<typeof useSidebarState>;
+  agentState?: ReturnType<typeof useGlobalAgentState>;
+  conversationManager?: ReturnType<typeof useConversationManager>;
+  chatInputManager?: ReturnType<typeof useChatInputManager>;
   selectedConversationId?: string;
   isConversationLoading?: boolean;
   
@@ -67,8 +67,6 @@ export const ChatMainContainer = memo(({
   } = conversationManager;
 
   const {
-    currentAgent,
-    availableAgents,
     isChanging: agentChanging,
     changeAgent
   } = agentState;
@@ -109,7 +107,6 @@ export const ChatMainContainer = memo(({
 
         <ChatHeader
           currentConversationTitle={currentConversation?.title}
-          currentAgentId={currentAgent?.id}
           onAgentChange={handleAgentChange}
           showSettings={true}
           onSettingsClick={() => {/* 設定処理 */}}
@@ -127,7 +124,7 @@ export const ChatMainContainer = memo(({
         )}
 
         <MessageList 
-          messages={messages}
+          messages={messages as unknown as any[]}
           isLoading={isWaitingForAiResponse}
           className="h-full"
         />
@@ -140,7 +137,6 @@ export const ChatMainContainer = memo(({
           onChange={handleInputChange}
           onSubmit={handleSubmit}
           disabled={isGeneralLoading || isWaitingForAiResponse}
-          agentId={currentAgent?.id}
           className=""
         />
       </div>

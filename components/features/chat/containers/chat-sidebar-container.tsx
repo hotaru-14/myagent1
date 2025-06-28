@@ -10,8 +10,8 @@ import type { ConversationWithDetails } from '@/lib/types/chat';
 
 interface ChatSidebarContainerProps {
   // 新しい統合プロパティ（オプション）
-  sidebarState?: any;
-  conversationManager?: any;
+  sidebarState?: ReturnType<typeof useSidebarState>;
+  conversationManager?: ReturnType<typeof useConversationManager>;
   isConversationLoading?: boolean;
   selectedConversationId?: string;
   
@@ -49,7 +49,6 @@ export const ChatSidebarContainer = memo(({
   const { 
     isVisible: isSidebarOpen, 
     toggleSidebar, 
-    showSidebar,
     hideSidebar,
     isMobile
   } = sidebarState;
@@ -91,7 +90,7 @@ export const ChatSidebarContainer = memo(({
   };
 
   // 会話データを履歴コンポーネント用にマッピング
-  const historyConversations: ConversationWithDetails[] = conversations.map((conv: any) => ({
+  const historyConversations: ConversationWithDetails[] = conversations.map((conv: ConversationWithDetails) => ({
     id: conv.id,
     title: conv.title,
     updated_at: conv.updated_at,

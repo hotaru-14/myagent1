@@ -13,9 +13,9 @@ export function EmptyState({ className = "" }: EmptyStateProps) {
       <p className="text-lg font-medium">Weather Agentへようこそ！</p>
       <p className="text-sm">天気について何でも聞いてください</p>
       <div className="mt-4 space-y-2 text-xs text-gray-400">
-        <p>例: "東京の今日の天気は？"</p>
-        <p>例: "ニューヨークの天気を教えて"</p>
-        <p>例: "大阪の明日の天気予報は？"</p>
+        <p>例: &ldquo;東京の今日の天気は？&rdquo;</p>
+        <p>例: &ldquo;ニューヨークの天気を教えて&rdquo;</p>
+        <p>例: &ldquo;大阪の明日の天気予報は？&rdquo;</p>
       </div>
     </div>
   );

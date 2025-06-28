@@ -1,6 +1,6 @@
 "use client";
 
-import { History, Plus } from "lucide-react";
+import { PlusCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ConversationList } from "./conversation-list";
 import type { ConversationWithDetails } from "@/lib/types/chat";  
@@ -38,7 +38,7 @@ export function ChatHistorySidebar({
           className="w-full"
           variant="default"
         >
-          <Plus className="w-4 h-4 mr-2" />
+          <PlusCircle className="w-4 h-4 mr-2" />
           新しい会話
         </Button>
       </div>

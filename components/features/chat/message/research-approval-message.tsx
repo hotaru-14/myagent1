@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useState } from "react";
-import { getResearchTheme } from '@/lib/constants/research-theme';
 
 interface SearchPlan {
   topic: string;
@@ -36,9 +35,6 @@ export function ResearchApprovalMessage({
   const [isModifying, setIsModifying] = useState(false);
   const [modifications, setModifications] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  
-  // 研究テーマの取得（今後ダークモード対応で使用）
-  const theme = getResearchTheme();
 
   const handleApprove = async () => {
     if (!onApprove || isLoading) return;

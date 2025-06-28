@@ -18,7 +18,7 @@ export function isTemporaryId(id: string): boolean {
 /**
  * 一時IDを永続IDに変換（新しいUUIDを生成）
  */
-export function convertTempIdToPermanent(_tempId: string): string {
+export function convertTempIdToPermanent(): string {
   return generateId()
 }
 

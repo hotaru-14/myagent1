@@ -12,10 +12,8 @@ import type {
   Message, 
   NewConversation, 
   NewMessage, 
-  ConversationWithDetails,
-  ApiResponse 
+  ConversationWithDetails
 } from '@/lib/types/chat'
-import { DEFAULT_AGENT_ID } from '@/lib/constants/agents'
 
 // ストレージ専用のState型（エージェント状態は別途管理）
 interface StorageState {
@@ -36,11 +34,12 @@ export function useChatStorage() {
   })
 
   // エラーハンドリング
-  const handleError = useCallback((error: any, action: string) => {
+  const handleError = useCallback((error: Error | unknown, action: string) => {
     console.error(`Error in ${action}:`, error)
+    const errorMessage = error instanceof Error ? error.message : `Failed to ${action}`
     setState(prev => ({ 
       ...prev, 
-      error: error.message || `Failed to ${action}`,
+      error: errorMessage,
       isLoading: false 
     }))
   }, [])

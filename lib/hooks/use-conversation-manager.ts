@@ -1,11 +1,14 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { useChatStorage } from './use-chat-storage';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useGlobalAgentState } from '@/lib/contexts/agent-context';
-import { DEFAULT_AGENT_ID, getAgentById } from '@/lib/constants/agents';
-import type { Conversation } from '@/lib/types/chat';
+import { useChatStorage } from './use-chat-storage';
+import { 
+  ConversationWithDetails, 
+  Message 
+} from '@/lib/types/chat';
 import { generateTempId, isTemporaryId } from '@/lib/utils/id-utils';
+import { getAgentById, DEFAULT_AGENT_ID } from '@/lib/constants/agents';
 
 interface UseConversationManagerProps {
   initialConversationId?: string;
@@ -27,7 +30,6 @@ export function useConversationManager({
     conversations,
     isLoading: storageLoading,
     error: storageError,
-    createConversation,
     saveMessage,
     saveMessageWithConversation,
     loadMessages,
@@ -43,6 +45,7 @@ export function useConversationManager({
     if (initialConversationId) {
       loadConversationById(initialConversationId);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialConversationId, conversations]);
 
   // 会話のメッセージを読み込み

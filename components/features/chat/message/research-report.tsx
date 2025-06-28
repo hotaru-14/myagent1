@@ -6,7 +6,6 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useState } from "react";
-import { getResearchTheme } from '@/lib/constants/research-theme';
 
 interface Citation {
   id: string;
@@ -39,9 +38,6 @@ export function ResearchReport({
   const [isExpanded, setIsExpanded] = useState(true);
   const [showCitations, setShowCitations] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
-  
-  // テーマ取得
-  const theme = getResearchTheme();
 
   const getReliabilityIcon = (reliability: 'high' | 'medium' | 'low') => {
     switch (reliability) {
