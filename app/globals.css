@@ -66,3 +66,93 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Markdownスタイリング */
+.prose-invert h1,
+.prose-invert h2,
+.prose-invert h3,
+.prose-invert h4,
+.prose-invert h5,
+.prose-invert h6 {
+  color: white;
+  margin-top: 0;
+}
+
+.prose-invert p,
+.prose-invert li {
+  color: white;
+}
+
+.prose-invert strong {
+  color: white;
+  font-weight: 600;
+}
+
+.prose-invert em {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.prose-invert code {
+  background-color: rgba(255, 255, 255, 0.15);
+  color: #e2e8f0;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+}
+
+.prose-invert pre {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 0.5rem;
+}
+
+.prose-invert blockquote {
+  border-left-color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.prose-invert a {
+  color: #93c5fd;
+  text-decoration: underline;
+}
+
+.prose-invert a:hover {
+  color: #bfdbfe;
+  text-decoration: none;
+}
+
+/* テーブルスタイリング */
+.prose-invert table {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.prose-invert th,
+.prose-invert td {
+  border-color: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.prose-invert th {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* シンタックスハイライト - ユーザーメッセージ用調整 */
+.prose-invert .hljs {
+  background: rgba(255, 255, 255, 0.1) !important;
+  color: #e2e8f0 !important;
+}
+
+/* タスクリストのスタイリング */
+.prose-invert input[type="checkbox"] {
+  margin-right: 0.5rem;
+  accent-color: #10b981;
+}
+
+/* モバイル対応 */
+@media (max-width: 640px) {
+  .prose-invert table {
+    font-size: 0.875rem;
+  }
+  
+  .prose-invert pre {
+    font-size: 0.75rem;
+  }
+}

@@ -57,7 +57,57 @@ export default {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      typography: {
+        sm: {
+          css: {
+            fontSize: '0.875rem',
+            lineHeight: '1.5',
+            h1: {
+              fontSize: '1.25rem',
+              marginTop: '0',
+              marginBottom: '0.5rem',
+            },
+            h2: {
+              fontSize: '1.125rem',
+              marginTop: '0.75rem',
+              marginBottom: '0.5rem',
+            },
+            h3: {
+              fontSize: '1rem',
+              marginTop: '0.5rem',
+              marginBottom: '0.25rem',
+            },
+            p: {
+              marginTop: '0',
+              marginBottom: '0.5rem',
+            },
+            ul: {
+              marginTop: '0',
+              marginBottom: '0.5rem',
+            },
+            ol: {
+              marginTop: '0',
+              marginBottom: '0.5rem',
+            },
+            li: {
+              marginTop: '0.25rem',
+              marginBottom: '0.25rem',
+            },
+            code: {
+              fontSize: '0.8125rem',
+            },
+            pre: {
+              fontSize: '0.8125rem',
+              marginTop: '0.75rem',
+              marginBottom: '0.75rem',
+            },
+          },
+        },
+      },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [
+    require("tailwindcss-animate"),
+    require('@tailwindcss/typography'),
+  ],
 } satisfies Config;

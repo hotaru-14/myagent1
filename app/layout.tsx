@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
+import { AgentProvider } from "@/lib/contexts/agent-context";
 import "./globals.css";
+import "../styles/research-animations.css";
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -33,7 +35,9 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          {children}
+          <AgentProvider>
+            {children}
+          </AgentProvider>
         </ThemeProvider>
       </body>
     </html>
