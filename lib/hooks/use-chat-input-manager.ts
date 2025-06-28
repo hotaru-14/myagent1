@@ -78,6 +78,7 @@ export function useChatInputManager({
       key: `chat-${currentAgent?.id || DEFAULT_AGENT_ID}`, // エージェント変更時に再初期化
       
       // ストリーミング中のリアルタイム処理（研究エージェント拡張）
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       onChunk: isResearchAgent ? (chunk: any) => {
         const now = Date.now();
         
@@ -117,6 +118,7 @@ export function useChatInputManager({
         }
       } : undefined,
       
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       onFinish: async (message: any) => {
         // 研究エージェントのストリーミング完了処理
         if (currentAgent?.id === 'researchAgent') {
@@ -176,6 +178,7 @@ export function useChatInputManager({
       },
       
       // エラーハンドリング（研究エージェント拡張）
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       onError: (error: any) => {
         console.error('Chat streaming error:', error);
         
@@ -201,6 +204,7 @@ export function useChatInputManager({
 
   // 入力値変更ハンドラー
   const handleInputValueChange = useCallback((value: string) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     handleInputChange({ target: { value } } as any);
   }, [handleInputChange]);
 
@@ -247,6 +251,7 @@ export function useChatInputManager({
   }, [setMessages, setCurrentConversation]);
 
   // 会話のメッセージを設定
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const loadMessages = useCallback((chatMessages: any[]) => {
     const formattedMessages = chatMessages.map(msg => ({
       id: msg.id,
@@ -258,6 +263,7 @@ export function useChatInputManager({
   }, [setMessages]);
 
   // 会話とメッセージを同期して読み込み
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const loadConversationWithMessages = useCallback(async (conversationId: string, messages: any[]) => {
     // メッセージを設定
     loadMessages(messages);

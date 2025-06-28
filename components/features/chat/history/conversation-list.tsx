@@ -1,7 +1,5 @@
 "use client";
 
-import { memo } from 'react';
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { ConversationItem } from './conversation-item';
 import type { ConversationWithDetails } from '@/lib/types/chat';
 

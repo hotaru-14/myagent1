@@ -28,6 +28,7 @@ export function NewConversationForm({
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && !e.shiftKey && !disabled) {
       e.preventDefault();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       handleSubmit(e as any);
     }
   };

@@ -6,29 +6,25 @@
 
 import React from 'react';
 import { useAgentContext, useGlobalAgentState } from '@/lib/contexts/agent-context';
-import { 
+import {
   validateAgentId, 
   validateAgentIdBatch, 
   isValidAgentId, 
   getValidatedAgent,
-  debugAgentValidation,
-  VALIDATION_ERROR_CODES 
+  debugAgentValidation
 } from '@/lib/utils/agent-validation';
 import {
   determineFallbackStrategy,
-  testFallbackStrategy,
   getFallbackHistory,
   clearFallbackHistory,
   getFallbackStatistics,
-  debugFallbackStrategy,
-  FALLBACK_REASON_CODES
+  debugFallbackStrategy
 } from '@/lib/utils/agent-fallback';
 
 export function AgentDebugPanel() {
   // 直接Contextを使用
   const {
     state,
-    currentAgent,
     changeAgent,
     resetAgent,
     clearError,

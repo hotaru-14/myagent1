@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { AlertTriangle, RefreshCw, Search, Wifi, WifiOff, Clock, AlertCircle, CheckCircle, X, RotateCcw } from 'lucide-react';
+import { AlertTriangle, RefreshCw, Search, Wifi, WifiOff, Clock, AlertCircle, X, RotateCcw } from 'lucide-react';
 
 // ==========================================
 // 型定義
@@ -286,7 +286,7 @@ export function ResearchErrorHandler({
             {error.context && (
               <div className="text-xs opacity-75 mt-2 space-y-1">
                 {error.context.searchQuery && (
-                  <div>検索クエリ: "{error.context.searchQuery}"</div>
+                  <div>検索クエリ: &ldquo;{error.context.searchQuery}&rdquo;</div>
                 )}
                 {error.context.searchCount && (
                   <div>検索回数: {error.context.searchCount}</div>

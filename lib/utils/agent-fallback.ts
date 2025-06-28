@@ -122,6 +122,7 @@ export const FALLBACK_STRATEGIES: FallbackStrategy[] = [
   {
     name: 'SimilarAgentFallback',
     priority: 4,
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     condition: (agentId, _context) => {
       const validation = validateAgentId(agentId);
       return Boolean(

@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { AlertTriangle, Info, AlertCircle, CheckCircle, X, Undo2, Settings } from 'lucide-react';
+import { AlertTriangle, Info, AlertCircle, X, Undo2, Settings } from 'lucide-react';
 import type { FallbackReason } from '@/lib/utils/agent-fallback';
 
 // ==========================================

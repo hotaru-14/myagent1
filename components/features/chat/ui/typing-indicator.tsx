@@ -1,6 +1,5 @@
 "use client";
 
-import { LoaderIcon } from "lucide-react";
 import { MessageAvatar } from "../message/message-avatar";
 
 interface TypingIndicatorProps {

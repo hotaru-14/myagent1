@@ -3,10 +3,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useGlobalAgentState } from '@/lib/contexts/agent-context';
 import { useChatStorage } from './use-chat-storage';
-import { 
-  ConversationWithDetails, 
-  Message 
-} from '@/lib/types/chat';
+
 import { generateTempId, isTemporaryId } from '@/lib/utils/id-utils';
 import { getAgentById, DEFAULT_AGENT_ID } from '@/lib/constants/agents';
 

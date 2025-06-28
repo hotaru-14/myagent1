@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { Monitor, Activity, Network, Bug, Download, Trash2, Play, Pause, Filter, Search, AlertTriangle, Info, CheckCircle, XCircle } from 'lucide-react';
+import { Monitor, Activity, Network, Bug, Download, Trash2, Play, Pause, Search, AlertTriangle, Info, CheckCircle, XCircle } from 'lucide-react';
 
 // ==========================================
 // 型定義
@@ -16,6 +16,7 @@ export interface DebugLog {
   level: LogLevel;
   category: LogCategory;
   message: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   details?: any;
   source?: string;
   agentId?: string;
@@ -449,6 +450,7 @@ export function AdvancedDebugPanel({
         ].map(tab => (
           <button
             key={tab.id}
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             onClick={() => setActiveTab(tab.id as any)}
             className={`flex items-center gap-1 px-4 py-2 text-sm transition-colors ${
               activeTab === tab.id
@@ -496,6 +498,7 @@ export function useAdvancedDebug() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const logDebug = React.useCallback((message: string, details?: any, source?: string) => {
     globalDebugLogger.addLog({
       level: 'debug',
@@ -506,6 +509,7 @@ export function useAdvancedDebug() {
     });
   }, []);
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const logError = React.useCallback((message: string, error?: Error, context?: any) => {
     globalPerformanceMonitor.updateMetrics({
       errorCount: globalPerformanceMonitor.getMetrics().errorCount + 1

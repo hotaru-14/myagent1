@@ -124,6 +124,7 @@ export const ChatMainContainer = memo(({
         )}
 
         <MessageList 
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           messages={messages as unknown as any[]}
           isLoading={isWaitingForAiResponse}
           className="h-full"

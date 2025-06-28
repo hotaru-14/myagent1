@@ -378,7 +378,7 @@ export function ResearchReport({
                         
                         {citation.excerpt && (
                           <p className="text-xs text-gray-700 dark:text-gray-300 italic line-clamp-2 leading-relaxed">
-                            "{citation.excerpt}"
+                            &ldquo;{citation.excerpt}&rdquo;
                           </p>
                         )}
                       </div>

@@ -1,14 +1,7 @@
 "use client";
 
-import { memo } from 'react';
 import { Button } from "@/components/ui/button";
-import { MoreHorizontal, MessageSquare, Clock, Trash2 } from "lucide-react";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
-} from "@/components/ui/dropdown-menu";
+import { MessageSquare, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ConversationWithDetails } from "@/lib/types/chat";
 
