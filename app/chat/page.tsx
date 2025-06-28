@@ -12,15 +12,13 @@ export default function ChatPage() {
   const { 
     showPanel: showAdvancedDebug, 
     setShowPanel: setShowAdvancedDebug,
-    logDebug,
-    logError 
+    logDebug
   } = useAdvancedDebug();
   
   const { 
     state: { fallbackNotifications }, 
     dismissFallbackNotification, 
-    undoAgentChange, 
-    clearAllFallbackNotifications 
+    undoAgentChange
   } = useAgentContext();
 
   // 初期ログメッセージ

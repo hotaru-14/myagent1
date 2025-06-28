@@ -10,7 +10,6 @@ interface ChatInputProps {
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
   disabled?: boolean;
   placeholder?: string;
-  agentId?: string;
   className?: string;
 }
 
@@ -20,7 +19,6 @@ export function ChatInput({
   onSubmit,
   disabled = false,
   placeholder = "メッセージを入力してください...",
-  agentId,
   className = ""
 }: ChatInputProps) {
   const [rows, setRows] = useState(1);
@@ -38,7 +36,9 @@ export function ChatInput({
     if (e.key === "Enter" && !e.shiftKey && !disabled) {
       e.preventDefault();
       if (value.trim()) {
-        onSubmit(e as any); // Form submitイベントとして扱う
+        // フォーム送信イベントとして扱うため、適切な型変換
+        const formEvent = new Event('submit', { bubbles: true, cancelable: true }) as unknown as React.FormEvent<HTMLFormElement>;
+        onSubmit(formEvent);
         setRows(1); // 送信後に行数をリセット
       }
     }

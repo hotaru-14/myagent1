@@ -13,19 +13,21 @@ export function ChatInterface() {
   });
 
   const handleInputValueChange = (value: string) => {
-    handleInputChange({ target: { value } } as any);
+    handleInputChange({ target: { value } } as React.ChangeEvent<HTMLInputElement>);
   };
 
-  // UIMessage を Message 型に変換する関数
-  const convertToMessages = (uiMessages: any[]): Message[] => {
-    return uiMessages.map((msg, index) => ({
-      id: msg.id || `temp-${index}`,
-      conversation_id: 'temp-conversation', // 一時的な会話ID
-      agent_id: msg.role === 'assistant' ? 'weatherAgent' : '', // デフォルトエージェント
-      role: msg.role,
-      content: msg.content,
-      created_at: msg.createdAt?.toISOString() || new Date().toISOString()
-    }));
+  // UIMessage を Message 型に変換する関数  
+  const convertToMessages = (uiMessages: ReturnType<typeof useChat>['messages']): Message[] => {
+    return uiMessages
+      .filter(msg => msg.role === 'user' || msg.role === 'assistant') // 対応するロールのみフィルタ
+      .map((msg, index) => ({
+        id: msg.id || `temp-${index}`,
+        conversation_id: 'temp-conversation', // 一時的な会話ID
+        agent_id: msg.role === 'assistant' ? 'weatherAgent' : '', // デフォルトエージェント
+        role: msg.role as 'user' | 'assistant', // 型アサーション
+        content: msg.content,
+        created_at: msg.createdAt?.toISOString() || new Date().toISOString()
+      }));
   };
 
   return (
