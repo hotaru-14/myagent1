@@ -196,7 +196,7 @@ export function extractCitations(content: string): Citation[] {
     // パターン1: 番号付きリスト形式の引用 (例: "1. タイトル - https://example.com")
     const numberedMatches = content.match(/(\d+)\.\s+([^-\n]+)(?:\s*-?\s*)(https?:\/\/[^\s\n]+)/g);
     if (numberedMatches) {
-      numberedMatches.forEach((match, index) => {
+      numberedMatches.forEach((match) => {
         const parts = match.match(/(\d+)\.\s+([^-\n]+)(?:\s*-?\s*)(https?:\/\/[^\s\n]+)/);
         if (parts) {
           citations.push({
@@ -402,7 +402,7 @@ function extractDomainFromUrl(url: string): string {
   try {
     const urlObj = new URL(url);
     return urlObj.hostname.replace('www.', '');
-  } catch (error) {
+  } catch {
     console.error('Invalid URL:', url);
     return 'unknown';
   }

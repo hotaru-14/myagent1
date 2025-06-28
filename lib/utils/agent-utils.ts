@@ -2,9 +2,9 @@
 // エージェント関連ユーティリティ関数
 // ==========================================
 
-import type { Message, ConversationWithDetails } from '@/lib/types/chat'
-import type { Agent, ConversationAgent } from '@/lib/types/agent'
-import { DEFAULT_AGENT_ID, getAgentById, AVAILABLE_AGENTS } from '@/lib/constants/agents'
+import type { Message } from '@/lib/types/chat'
+import type { Agent } from '@/lib/types/agent'
+import { DEFAULT_AGENT_ID, getAgentById } from '@/lib/constants/agents'
 import { createClient } from '@/lib/supabase/client'
 
 
@@ -59,6 +59,14 @@ export async function getAgentUsageStats(userId: string, days: number = 30) {
       return []
     }
 
+    interface AgentStat {
+      agentId: string;
+      agent: Agent | null;
+      messageCount: number;
+      lastUsedAt: string;
+      firstUsedAt: string;
+    }
+
     const stats = messages.reduce((acc, message) => {
       const agentId = message.agent_id
       if (!acc[agentId]) {
@@ -79,9 +87,9 @@ export async function getAgentUsageStats(userId: string, days: number = 30) {
       }
       
       return acc
-    }, {} as Record<string, any>)
+    }, {} as Record<string, AgentStat>)
 
-    return Object.values(stats).sort((a: any, b: any) => b.messageCount - a.messageCount)
+    return Object.values(stats).sort((a: AgentStat, b: AgentStat) => b.messageCount - a.messageCount)
     
   } catch (error) {
     console.error('Error getting agent usage stats:', error)

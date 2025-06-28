@@ -85,7 +85,8 @@ Format your response in a clear, informative manner with proper structure and or
     // Google Search Grounding 機能を有効化
     const model = genaiClient.getGenerativeModel({
       model: 'gemini-2.5-flash',
-      tools: [{ googleSearch: {} } as any], // Google Search Grounding を有効化 (実験的機能のためany型キャスト)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      tools: [{ googleSearch: {} } as any], // Google Search Grounding を有効化 (実験的機能のため型キャストが必要)
       generationConfig: {
         temperature: 1.0,               // 出力の多様性調整 (0=決定論的, 1=自由)
         maxOutputTokens: 8192,          // 出力トークン上限
@@ -104,6 +105,7 @@ Format your response in a clear, informative manner with proper structure and or
       // Google Search Grounding のメタデータから引用を取得
       const groundingMetadata = response.candidates?.[0]?.groundingMetadata;
       if (groundingMetadata?.groundingChunks) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         groundingMetadata.groundingChunks.forEach((chunk: any) => {
           if (chunk.web?.uri) {
             citations.push(chunk.web.uri);
@@ -184,16 +186,17 @@ export const webSearchTool = createTool({
         success: true,
       };
       
-    } catch (error: any) {
+    } catch (error) {
       // 6. エラー時: content にメッセージを格納し success=false
       console.error(`[Web Search ${searchId}] Error:`, error);
+      const errorMessage = error instanceof Error ? error.message : String(error);
       return {
         searchId,
         query,
-        content: `検索エラー: "${query}"の検索中に問題が発生しました。エラー詳細: ${error.message}`,
+        content: `検索エラー: "${query}"の検索中に問題が発生しました。エラー詳細: ${errorMessage}`,
         citations: [],
         success: false,
-        error: error.message,
+        error: errorMessage,
       };
     }
   },
