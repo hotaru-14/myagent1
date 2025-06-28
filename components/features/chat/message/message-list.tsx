@@ -11,6 +11,7 @@ interface MessageListProps {
   messages: Message[];
   isLoading?: boolean;
   conversationId?: string;
+  enableMarkdown?: boolean;
   emptyStateTitle?: string;
   emptyStateDescription?: string;
   className?: string;
@@ -20,6 +21,7 @@ export function MessageList({
   messages,
   isLoading = false,
   conversationId,
+  enableMarkdown = true,
   emptyStateTitle,
   emptyStateDescription,
   className = ""
@@ -58,6 +60,7 @@ export function MessageList({
               message={message}
               isStreaming={isStreaming}
               conversationId={conversationId}
+              enableMarkdown={enableMarkdown}
             />
           );
         })}

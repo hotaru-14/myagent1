@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useSidebarState } from './use-sidebar-state';
-import { useAgentState } from './use-agent-state';
+import { useGlobalAgentState } from '@/lib/contexts/agent-context';
 import { useConversationManager } from './use-conversation-manager';
 import { useChatInputManager } from './use-chat-input-manager';
 import { DEFAULT_AGENT_ID, getAgentById } from '@/lib/constants/agents';
@@ -22,7 +22,7 @@ export function useIntegratedChatState({
 
   // 各種状態管理hooks
   const sidebarState = useSidebarState();
-  const agentState = useAgentState();
+  const agentState = useGlobalAgentState();
   
   const conversationManager = useConversationManager({ 
     initialConversationId: selectedConversationId, 

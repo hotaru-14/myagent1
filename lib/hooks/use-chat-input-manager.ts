@@ -3,7 +3,7 @@
 import { useCallback, useRef, useState, useMemo } from 'react';
 import { useChat } from '@ai-sdk/react';
 import { useConversationManager } from './use-conversation-manager';
-import { useAgentState } from './use-agent-state';
+import { useGlobalAgentState } from '@/lib/contexts/agent-context';
 import { DEFAULT_AGENT_ID, getAgentById } from '@/lib/constants/agents';
 import { 
   isResearchPlanMessage, 
@@ -37,7 +37,7 @@ export function useChatInputManager({
     currentResearchPhase: null
   });
   
-  const { currentAgent } = useAgentState();
+  const { currentAgent } = useGlobalAgentState();
   const {
     saveMessageToConversation,
     saveAiResponse,
@@ -50,11 +50,24 @@ export function useChatInputManager({
   // 研究エージェント用の設定計算
   const chatConfig = useMemo(() => {
     const isResearchAgent = currentAgent?.id === 'researchAgent';
+    const agentId = currentAgent?.id || DEFAULT_AGENT_ID;
+    
+    // Phase C: API送信前のagentIdバリデーション
+    console.log(`[ChatInput] 🔧 Preparing API config:`, {
+      currentAgent: {
+        id: currentAgent?.id,
+        name: currentAgent?.name,
+        icon: currentAgent?.icon
+      },
+      resolvedAgentId: agentId,
+      isValidAgent: !!currentAgent,
+      timestamp: new Date().toISOString()
+    });
     
     return {
       api: "/api/chat",
       body: {
-        agentId: currentAgent?.id || DEFAULT_AGENT_ID,
+        agentId: agentId,
         // 研究エージェント用の拡張設定
         ...(isResearchAgent && {
           streamingTimeout: 300000, // 5分（研究は時間がかかる）
@@ -122,21 +135,40 @@ export function useChatInputManager({
         
         // AI応答完了時に、ユーザーメッセージとAI応答を一括保存
         if (autoSave && pendingUserMessageRef.current) {
+          const pendingMessage = pendingUserMessageRef.current;
+          const aiAgentId = currentAgent?.id || DEFAULT_AGENT_ID;
+          
+          console.log(`[ChatInput] 💾 Starting message save process:`, {
+            userMessage: {
+              content: pendingMessage.content.slice(0, 50) + (pendingMessage.content.length > 50 ? '...' : ''),
+              agentId: pendingMessage.agentId
+            },
+            aiResponse: {
+              contentLength: message.content?.length || 0,
+              agentId: aiAgentId
+            },
+            timestamp: new Date().toISOString()
+          });
+          
           try {
             // まずユーザーメッセージを保存
+            console.log(`[ChatInput] 📝 Saving user message with agentId: ${pendingMessage.agentId}`);
             await saveMessageToConversation(
               'user', 
-              pendingUserMessageRef.current.content, 
-              pendingUserMessageRef.current.agentId
+              pendingMessage.content, 
+              pendingMessage.agentId
             );
             
             // 次にAI応答を保存
-            await saveAiResponse(message.content, currentAgent?.id);
+            console.log(`[ChatInput] 🤖 Saving AI response with agentId: ${aiAgentId}`);
+            await saveAiResponse(message.content, aiAgentId);
+            
+            console.log(`[ChatInput] ✅ Messages saved successfully`);
             
             // 保存完了後、一時保存データをクリア
             pendingUserMessageRef.current = null;
           } catch (error) {
-            console.error('Error saving messages:', error);
+            console.error('[ChatInput] ❌ Error saving messages:', error);
             // エラー発生時も一時保存データをクリア
             pendingUserMessageRef.current = null;
           }
@@ -178,15 +210,33 @@ export function useChatInputManager({
     
     if (!input.trim()) return;
 
+    const agentId = currentAgent?.id || DEFAULT_AGENT_ID;
+    
+    // Phase C: メッセージ送信前のバリデーションとログ
+    console.log(`[ChatInput] 📤 Preparing message submission:`, {
+      messageLength: input.length,
+      messagePreview: input.slice(0, 50) + (input.length > 50 ? '...' : ''),
+      selectedAgent: {
+        id: agentId,
+        name: currentAgent?.name || 'Default',
+        isValid: !!currentAgent
+      },
+      autoSave: autoSave,
+      timestamp: new Date().toISOString()
+    });
+
     // ユーザーメッセージを一時保存（DB保存はonFinishで行う）
     if (autoSave) {
       pendingUserMessageRef.current = {
         content: input,
-        agentId: currentAgent?.id || DEFAULT_AGENT_ID
+        agentId: agentId
       };
+      
+      console.log(`[ChatInput] 💾 Message queued for saving with agentId: ${agentId}`);
     }
 
     // 元のhandleSubmitを実行（API呼び出し）
+    console.log(`[ChatInput] 🚀 Submitting to API with agentId: ${agentId}`);
     originalHandleSubmit(e);
   }, [input, autoSave, currentAgent, originalHandleSubmit]);
 

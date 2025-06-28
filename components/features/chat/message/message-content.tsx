@@ -12,6 +12,7 @@ import { ResearchApprovalMessage } from "./research-approval-message";
 import { ResearchProgress } from "./research-progress";
 import { ResearchReport } from "./research-report";
 import { useResearchInteraction } from "@/lib/hooks/use-research-interaction";
+import { MarkdownRenderer } from "./markdown-renderer";
 
 interface MessageContentProps {
   content: string;
@@ -19,6 +20,7 @@ interface MessageContentProps {
   agentId?: string;
   isStreaming?: boolean;
   conversationId?: string;
+  enableMarkdown?: boolean; // 新規追加
   className?: string;
 }
 
@@ -28,6 +30,7 @@ export function MessageContent({
   agentId,
   isStreaming = false,
   conversationId,
+  enableMarkdown = true, // デフォルトでMarkdownを有効化
   className = "" 
 }: MessageContentProps) {
   // 研究エージェント用インタラクション機能（Phase 4.1実装）
@@ -103,12 +106,20 @@ export function MessageContent({
   // 通常のメッセージ表示（研究エージェント以外 または 特殊メッセージではない場合）
   return (
     <div className={`${baseClasses} ${roleClasses} ${className}`}>
-      <div className="text-sm whitespace-pre-wrap break-words">
-        {content}
-        {isStreaming && role === "assistant" && (
-          <span className="inline-block w-2 h-4 bg-gray-600 ml-1 animate-pulse" />
-        )}
-      </div>
+      {enableMarkdown ? (
+        <MarkdownRenderer 
+          content={content} 
+          role={role}
+          className="text-sm"
+        />
+      ) : (
+        <div className="text-sm whitespace-pre-wrap break-words">
+          {content}
+        </div>
+      )}
+      {isStreaming && role === "assistant" && (
+        <span className="inline-block w-2 h-4 bg-gray-600 ml-1 animate-pulse" />
+      )}
     </div>
   );
 } 

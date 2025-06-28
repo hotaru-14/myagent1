@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useChatStorage } from './use-chat-storage';
-import { useAgentState } from './use-agent-state';
+import { useGlobalAgentState } from '@/lib/contexts/agent-context';
 import { DEFAULT_AGENT_ID, getAgentById } from '@/lib/constants/agents';
 import type { Conversation } from '@/lib/types/chat';
 import { generateTempId, isTemporaryId } from '@/lib/utils/id-utils';
@@ -36,7 +36,7 @@ export function useConversationManager({
     setCurrentConversation
   } = useChatStorage();
 
-  const { currentAgent, changeAgent } = useAgentState();
+  const { currentAgent, changeAgent } = useGlobalAgentState();
 
   // 指定された会話を読み込み
   useEffect(() => {
@@ -142,30 +142,70 @@ export function useConversationManager({
   ) => {
     if (!autoSave) return null;
 
+    const resolvedAgentId = agentId || currentAgent?.id || DEFAULT_AGENT_ID;
+    
+    // Phase C: DB保存前のバリデーションとログ
+    console.log(`[ConversationManager] 💾 Starting message save:`, {
+      role,
+      contentLength: content.length,
+      contentPreview: content.slice(0, 50) + (content.length > 50 ? '...' : ''),
+      agentId: {
+        provided: agentId,
+        current: currentAgent?.id,
+        resolved: resolvedAgentId
+      },
+      conversation: {
+        id: currentConversation?.id,
+        isTemporary: currentConversation ? isTemporaryId(currentConversation.id) : null
+      },
+      timestamp: new Date().toISOString()
+    });
+
     setError(null);
 
     try {
       if (currentConversation && !isTemporaryId(currentConversation.id)) {
         // 既存の会話（永続ID）にメッセージを保存
-        return await saveMessage(
+        console.log(`[ConversationManager] 📝 Saving to existing conversation: ${currentConversation.id}`);
+        const result = await saveMessage(
           currentConversation.id, 
           role, 
           content, 
-          agentId || currentAgent?.id || DEFAULT_AGENT_ID
+          resolvedAgentId
         );
+        
+        console.log(`[ConversationManager] ✅ Message saved to existing conversation:`, {
+          conversationId: currentConversation.id,
+          messageId: result?.id,
+          agentId: resolvedAgentId
+        });
+        
+        return result;
       } else {
         // 新しい会話を作成し、同時にメッセージを保存
         // 一時的な会話またはcurrentConversationがnullの場合
         const agentName = currentAgent?.name || "AI";
         const title = currentConversation?.title || content.slice(0, 30) || `新しい${agentName}との会話`;
+        
+        console.log(`[ConversationManager] 🆕 Creating new conversation with message:`, {
+          title,
+          agentId: resolvedAgentId
+        });
+        
         const result = await saveMessageWithConversation(
           role, 
           content, 
-          agentId || currentAgent?.id || DEFAULT_AGENT_ID, 
+          resolvedAgentId, 
           title
         );
         
         if (result) {
+          console.log(`[ConversationManager] ✅ New conversation created:`, {
+            conversationId: result.conversation.id,
+            messageId: result.message.id,
+            agentId: resolvedAgentId
+          });
+          
           // 新しく作成された会話を現在の会話として設定
           setCurrentConversation(result.conversation);
           pendingConversationIdRef.current = result.conversation.id;
@@ -176,7 +216,12 @@ export function useConversationManager({
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to save message';
       setError(errorMessage);
-      console.error('Error saving message:', err);
+      console.error(`[ConversationManager] ❌ Error saving message:`, {
+        error: errorMessage,
+        agentId: resolvedAgentId,
+        role,
+        contentLength: content.length
+      });
       return null;
     }
   }, [
@@ -192,27 +237,64 @@ export function useConversationManager({
   const saveAiResponse = useCallback(async (content: string, agentId?: string) => {
     if (!autoSave) return null;
 
+    const resolvedAgentId = agentId || currentAgent?.id || DEFAULT_AGENT_ID;
+    const conversationId = currentConversation?.id || pendingConversationIdRef.current;
+    
+    // Phase C: AI応答保存前のバリデーションとログ
+    console.log(`[ConversationManager] 🤖 Starting AI response save:`, {
+      contentLength: content.length,
+      contentPreview: content.slice(0, 100) + (content.length > 100 ? '...' : ''),
+      agentId: {
+        provided: agentId,
+        current: currentAgent?.id,
+        resolved: resolvedAgentId
+      },
+      conversationId: {
+        current: currentConversation?.id,
+        pending: pendingConversationIdRef.current,
+        resolved: conversationId
+      },
+      timestamp: new Date().toISOString()
+    });
+
     try {
-      // 現在の会話IDまたは新しく作成された会話IDを使用
-      const conversationId = currentConversation?.id || pendingConversationIdRef.current;
-      
       if (conversationId) {
+        console.log(`[ConversationManager] 📝 Saving AI response to conversation: ${conversationId}`);
         const result = await saveMessage(
           conversationId, 
           'assistant', 
           content, 
-          agentId || currentAgent?.id || DEFAULT_AGENT_ID
+          resolvedAgentId
         );
+        
+        console.log(`[ConversationManager] ✅ AI response saved:`, {
+          conversationId,
+          messageId: result?.id,
+          agentId: resolvedAgentId,
+          contentLength: content.length
+        });
+        
         // 保存後、一時的な会話IDをクリア
         pendingConversationIdRef.current = null;
         return result;
       } else {
-        throw new Error('No conversation ID available for saving AI response');
+        const error = 'No conversation ID available for saving AI response';
+        console.error(`[ConversationManager] ❌ ${error}:`, {
+          currentConversation: currentConversation?.id,
+          pendingConversationId: pendingConversationIdRef.current,
+          agentId: resolvedAgentId
+        });
+        throw new Error(error);
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to save AI response';
       setError(errorMessage);
-      console.error('Error saving AI response:', err);
+      console.error(`[ConversationManager] ❌ Error saving AI response:`, {
+        error: errorMessage,
+        agentId: resolvedAgentId,
+        conversationId,
+        contentLength: content.length
+      });
       return null;
     }
   }, [autoSave, currentConversation, currentAgent, saveMessage]);

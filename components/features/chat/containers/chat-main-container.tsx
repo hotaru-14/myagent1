@@ -4,7 +4,7 @@ import { memo } from 'react';
 import { useSidebarState } from '@/lib/hooks/use-sidebar-state';
 import { useConversationManager } from '@/lib/hooks/use-conversation-manager';
 import { useChatInputManager } from '@/lib/hooks/use-chat-input-manager';
-import { useAgentState } from '@/lib/hooks/use-agent-state';
+import { useGlobalAgentState } from '@/lib/contexts/agent-context';
 import { ChatHeader } from '../chat-header';
 import { MessageList } from '../message/message-list';
 import { ChatInput } from '../chat-input';
@@ -47,7 +47,7 @@ export const ChatMainContainer = memo(({
     initialConversationId: conversationId || selectedConversationId, 
     autoSave 
   });
-  const internalAgentState = useAgentState();
+  const internalAgentState = useGlobalAgentState();
   const internalChatInputManager = useChatInputManager({
     conversationId: conversationId || selectedConversationId,
     autoSave

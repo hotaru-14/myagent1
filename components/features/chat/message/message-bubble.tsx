@@ -8,6 +8,7 @@ interface MessageBubbleProps {
   message: Message;
   isStreaming?: boolean;
   conversationId?: string;
+  enableMarkdown?: boolean;
   className?: string;
 }
 
@@ -15,6 +16,7 @@ export function MessageBubble({
   message, 
   isStreaming = false,
   conversationId,
+  enableMarkdown = true,
   className = "" 
 }: MessageBubbleProps) {
   const { role, content, agent_id } = message;
@@ -37,6 +39,7 @@ export function MessageBubble({
           agentId={agent_id}
           isStreaming={isStreaming}
           conversationId={conversationId}
+          enableMarkdown={enableMarkdown}
         />
       </div>
     </div>
