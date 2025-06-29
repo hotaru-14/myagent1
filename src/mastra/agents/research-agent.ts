@@ -344,7 +344,9 @@ export const researchAgent = new Agent({
   tools: { webSearchTool },
   memory: new Memory({
     storage: new LibSQLStore({
-      url: 'file:../mastra.db', // Mastra全体設定と統一
+      // Turso (LibSQL) database for production, local file for development
+      url: process.env.TURSO_DATABASE_URL || 'file:../mastra.db',
+      authToken: process.env.TURSO_AUTH_TOKEN,
     }),
   }),
 }); 

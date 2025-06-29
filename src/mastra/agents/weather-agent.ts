@@ -22,7 +22,9 @@ export const weatherAgent = new Agent({
   tools: { weatherTool },
   memory: new Memory({
     storage: new LibSQLStore({
-      url: 'file:../mastra.db', // path is relative to the .mastra/output directory
+      // Turso (LibSQL) database for production, local file for development
+      url: process.env.TURSO_DATABASE_URL || 'file:../mastra.db',
+      authToken: process.env.TURSO_AUTH_TOKEN,
     }),
   }),
 });

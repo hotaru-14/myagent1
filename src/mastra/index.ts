@@ -15,8 +15,9 @@ try {
       researchAgent
     },
     storage: new LibSQLStore({
-      // stores telemetry, evals, ... into memory storage, if it needs to persist, change to file:../mastra.db
-      url: "file:../mastra.db",
+      // Turso (LibSQL) database for production, local file for development
+      url: process.env.TURSO_DATABASE_URL || "file:../mastra.db",
+      authToken: process.env.TURSO_AUTH_TOKEN,
     }),
     logger: new PinoLogger({
       name: 'Mastra',
