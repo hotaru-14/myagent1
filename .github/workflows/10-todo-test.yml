@@ -1,0 +1,232 @@
+name: 10-todo-test - Dashboard Migration Tests
+
+# PR時とmainブランチへのpush時にトリガー
+on:
+  pull_request:
+    branches: [main, master]
+  push:
+    branches: [main, master]
+
+# 環境変数の設定
+env:
+  NODE_VERSION: '18'
+  COVERAGE_THRESHOLD: 70
+
+jobs:
+  # 🔧 基本チェック（Lint、TypeScript、フォーマット）
+  lint-and-type-check:
+    name: 🔧 Lint and Type Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📦 Checkout code
+        uses: actions/checkout@v4
+      
+      - name: 🏗️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: 📥 Install dependencies
+        run: npm ci
+      
+      - name: 🔍 TypeScript type check
+        run: npx tsc --noEmit
+      
+      - name: 🧹 ESLint check
+        run: npm run lint
+      
+      - name: 🎨 Prettier format check
+        run: npm run format:check
+        continue-on-error: true  # フォーマットエラーでもジョブを継続
+
+  # 🧪 ユニットテスト
+  unit-tests:
+    name: 🧪 Unit Tests
+    runs-on: ubuntu-latest
+    needs: lint-and-type-check
+    steps:
+      - name: 📦 Checkout code
+        uses: actions/checkout@v4
+      
+      - name: 🏗️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: 📥 Install dependencies
+        run: npm ci
+      
+      - name: 🧪 Run unit tests with coverage
+        run: npm run test:coverage
+      
+      - name: 📊 Check coverage threshold
+        run: |
+          COVERAGE=$(npx jest --coverage --passWithNoTests --silent | grep "Lines" | awk '{print $2}' | sed 's/%//' || echo "0")
+          echo "Coverage: $COVERAGE%"
+          if [ "$COVERAGE" -lt "$COVERAGE_THRESHOLD" ]; then
+            echo "❌ Coverage $COVERAGE% is below threshold $COVERAGE_THRESHOLD%"
+            echo "::warning::Code coverage ($COVERAGE%) is below the required threshold ($COVERAGE_THRESHOLD%)"
+          else
+            echo "✅ Coverage $COVERAGE% meets threshold $COVERAGE_THRESHOLD%"
+          fi
+      
+      - name: 📤 Upload coverage reports
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: coverage-reports
+          path: coverage/
+
+  # 🏗️ ビルドテスト
+  build-test:
+    name: 🏗️ Build Test
+    runs-on: ubuntu-latest
+    needs: lint-and-type-check
+    steps:
+      - name: 📦 Checkout code
+        uses: actions/checkout@v4
+      
+      - name: 🏗️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: 📥 Install dependencies
+        run: npm ci
+      
+      - name: 🔨 Build application
+        run: npm run build
+        env:
+          NODE_ENV: production
+      
+      - name: 📤 Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-files
+          path: .next/
+
+  # 🌐 E2Eテスト
+  e2e-tests:
+    name: 🌐 E2E Tests
+    runs-on: ubuntu-latest
+    needs: [unit-tests, build-test]
+    timeout-minutes: 10
+    steps:
+      - name: 📦 Checkout code
+        uses: actions/checkout@v4
+      
+      - name: 🏗️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: 📥 Install dependencies
+        run: npm ci
+      
+      - name: 🎭 Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+      
+      - name: 🚀 Run E2E tests
+        run: npm run test:e2e
+        env:
+          CI: true
+      
+      - name: 📤 Upload E2E test results
+        uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: e2e-test-results
+          path: |
+            test-results/
+            playwright-report/
+
+  # 🛡️ ダッシュボード固有テスト（protected → dashboard移行）
+  dashboard-migration-tests:
+    name: 🛡️ Dashboard Migration Tests
+    runs-on: ubuntu-latest
+    needs: build-test
+    steps:
+      - name: 📦 Checkout code
+        uses: actions/checkout@v4
+      
+      - name: 🏗️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: 📥 Install dependencies
+        run: npm ci
+      
+      - name: 🔨 Build application
+        run: npm run build
+      
+      - name: 🚀 Start application
+        run: |
+          npm start &
+          npx wait-on http://localhost:3000 --timeout 60000
+        env:
+          NODE_ENV: production
+      
+      - name: ❌ Test old protected route returns 404
+        run: |
+          echo "Testing /protected route returns 404..."
+          response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/protected || echo "000")
+          echo "Response code: $response"
+          if [ "$response" != "404" ]; then
+            echo "❌ /protected should return 404, got $response"
+            exit 1
+          else
+            echo "✅ /protected correctly returns 404"
+          fi
+      
+      - name: ✅ Test new dashboard route accessibility
+        run: |
+          echo "Testing /dashboard route accessibility..."
+          response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/dashboard || echo "000")
+          echo "Response code: $response"
+          if [ "$response" != "200" ] && [ "$response" != "302" ] && [ "$response" != "307" ]; then
+            echo "❌ /dashboard should be accessible (200) or redirect (302/307), got $response"
+            exit 1
+          else
+            echo "✅ /dashboard is accessible (response: $response)"
+          fi
+      
+      - name: 🔍 Verify routing changes
+        run: |
+          echo "Verifying no remaining /protected references in code..."
+          # JavaScriptファイル内の/protectedの参照をチェック（ファイル名は除外）
+          if grep -r "/protected" --include="*.ts" --include="*.tsx" --include="*.js" --include="*.jsx" --exclude-dir=node_modules --exclude-dir=.next --exclude-dir=.git . | grep -v "todo" | grep -v "test"; then
+            echo "❌ Found remaining /protected references in code"
+            exit 1
+          else
+            echo "✅ No remaining /protected references found in code"
+          fi
+
+  # 📊 テスト結果まとめ
+  test-summary:
+    name: 📊 Test Summary
+    runs-on: ubuntu-latest
+    needs: [lint-and-type-check, unit-tests, build-test, e2e-tests, dashboard-migration-tests]
+    if: always()
+    steps:
+      - name: 📋 Check test results
+        run: |
+          echo "## 🎯 Test Results Summary" >> $GITHUB_STEP_SUMMARY
+          echo "| Test Type | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔧 Lint & Type Check | ${{ needs.lint-and-type-check.result == 'success' && '✅ Pass' || '❌ Fail' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🧪 Unit Tests | ${{ needs.unit-tests.result == 'success' && '✅ Pass' || '❌ Fail' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🏗️ Build Test | ${{ needs.build-test.result == 'success' && '✅ Pass' || '❌ Fail' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🌐 E2E Tests | ${{ needs.e2e-tests.result == 'success' && '✅ Pass' || '❌ Fail' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🛡️ Dashboard Migration | ${{ needs.dashboard-migration-tests.result == 'success' && '✅ Pass' || '❌ Fail' }} |" >> $GITHUB_STEP_SUMMARY
+          
+          if [[ "${{ needs.lint-and-type-check.result }}" == "success" && "${{ needs.unit-tests.result }}" == "success" && "${{ needs.build-test.result }}" == "success" && "${{ needs.e2e-tests.result }}" == "success" && "${{ needs.dashboard-migration-tests.result }}" == "success" ]]; then
+            echo "🎉 **All tests passed!** Ready to merge." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ **Some tests failed.** Please review and fix before merging." >> $GITHUB_STEP_SUMMARY
+          fi 
