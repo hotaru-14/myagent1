@@ -2,16 +2,10 @@
 
 # dependencies
 /node_modules
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
 
 # testing
 /coverage
+/tests/10-todo-test/report/
 
 # next.js
 /.next/
@@ -20,9 +14,17 @@
 # production
 /build
 
+# swc cache
+/.swc/
+
+# mastra framework
+/.mastra/
+
+# cursor editor
+/.cursor/
+
 # misc
 .DS_Store
-*.pem
 
 # debug
 npm-debug.log*
