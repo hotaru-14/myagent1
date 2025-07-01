@@ -1,11 +1,7 @@
 import type { NextConfig } from "next";
 
-// エラーを無視する代替の設定: ESLintを無効化
 const nextConfig: NextConfig = {
-  experimental: {
-    // @ts-ignore
-    instrumentationHook: true,
-  },
+  // Next.js 15では instrumentationHook は不要（デフォルトで有効）
 };
 
 export default nextConfig;

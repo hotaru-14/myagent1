@@ -70,11 +70,64 @@ Vercelにデプロイせずにローカルでのみ開発したい場合は、[�
 
 ---
 
+## 🖥️ WSL2での開発について（Windows環境）
+
+**Windows環境でWSL2を使用する場合の重要な注意点：**
+
+[Next.js公式ドキュメント](https://nextjs.org/docs/app/getting-started/installation)でも、WindowsでのNext.js開発にはWSL2の使用が推奨されています。
+
+### ✅ WSL2の利点
+- **パフォーマンス向上** - Linuxファイルシステムによる高速ビルド
+- **互換性** - 本番環境（Linux）との一致
+- **SWCサポート** - Next.jsのRustベースコンパイラが最適動作
+
+### ⚠️ WSL2での重要な注意点
+
+1. **ファイル配置場所**
+   ```bash
+   # ❌ 避けるべき（遅い）
+   /mnt/c/Users/username/project
+   
+   # ✅ 推奨（高速）
+   ~/project
+   /home/username/project
+   ```
+
+2. **依存関係の再インストール**
+   異なるOS環境（macOS → WSL2）でクローンした場合、必ずnode_modulesを再インストール：
+   ```bash
+   # クローン後、必ず実行
+   rm -rf node_modules package-lock.json
+   npm install
+   ```
+
+3. **SWCキャッシュの自動再生成**
+   ```bash
+   # macOS: .swc/plugins/v7_macos_aarch64_9.0.0/
+   # WSL2: .swc/plugins/v7_linux_x64_9.0.0/  ← 自動生成
+   ```
+
+---
+
 ## 🔄 パターン A: このプロジェクトをクローンして使用する
 
 **このリポジトリのコードを使って開発を始めたい場合**
 
 ### ステップ 1: リポジトリのクローン
+
+**Windows（WSL2）での推奨手順:**
+```bash
+# WSLターミナルで実行（Windowsの場合）
+cd ~/  # ホームディレクトリに移動（重要）
+git clone [このプロジェクトのGitHub URL]
+cd [プロジェクトディレクトリ名]
+
+# 異なるOS環境からクローンした場合は必須
+rm -rf node_modules package-lock.json
+npm install
+```
+
+**macOS/Linux（ネイティブ）での手順:**
 ```bash
 git clone [このプロジェクトのGitHub URL]
 cd [プロジェクトディレクトリ名]
@@ -130,6 +183,17 @@ npm run dev
 **Supabaseの公式テンプレートをベースに新しいプロジェクトを作成したい場合**
 
 ### ステップ 1: Next.jsプロジェクトの作成
+
+**Windows（WSL2）での推奨手順:**
+```bash
+# WSLターミナルで実行（Windowsの場合）
+cd ~/  # ホームディレクトリに移動（重要）
+npx create-next-app --example with-supabase my-supabase-app
+cd my-supabase-app
+npm install
+```
+
+**macOS/Linux（ネイティブ）での手順:**
 ```bash
 npx create-next-app --example with-supabase my-supabase-app
 cd my-supabase-app
@@ -199,9 +263,27 @@ npx shadcn@latest init
    - 認証済みユーザーでログインしているか確認
    - ブラウザのコンソールでエラーメッセージを確認
 
+4. **WSL2環境での問題（Windows）**
+   - **ビルドが遅い場合**: プロジェクトが`/mnt/c/`にないか確認し、`~/`に移動
+   - **依存関係エラー**: 異なるOS環境からクローンした場合は`rm -rf node_modules package-lock.json && npm install`を実行
+   - **SWCエラー**: `.swc`フォルダを削除して再ビルド（自動再生成される）
+   - **ファイル権限エラー**: WSLファイルシステム内で開発していることを確認
+
+5. **Node.jsバージョン問題**
+   - Node.js 18.0以上が必要です
+   - WSL2でのNode.js管理にはnvmの使用を推奨：
+     ```bash
+     # nvmインストール（WSL2）
+     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
+     nvm install --lts
+     nvm use --lts
+     ```
+
 ### 📚 参考資料
 - [Supabaseローカル開発ガイド](https://supabase.com/docs/guides/getting-started/local-development) - Supabaseをローカルで実行する方法
 - [Next.js 公式ドキュメント](https://nextjs.org/docs) - Next.jsの詳細な使い方
+- [Next.js WSL2セットアップガイド](https://learn.microsoft.com/en-us/windows/dev-environment/javascript/nextjs-on-wsl) - Microsoft公式WSL2セットアップ
+- [SWC公式ドキュメント](https://swc.rs/) - Next.jsで使用されるRustベースコンパイラ
 - [shadcn/ui ドキュメント](https://ui.shadcn.com/) - UIコンポーネントの使い方
 
 ## 🤖 チャット機能
