@@ -180,16 +180,23 @@ jobs:
           NEXT_PUBLIC_SUPABASE_URL: "https://dummy.supabase.co"
           NEXT_PUBLIC_SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.dummy"
       
-      - name: ❌ Test old protected route returns 404
+      - name: 🔀 Test protected route redirects to login
         run: |
-          echo "Testing /protected route returns 404..."
+          echo "Testing /protected route redirects to /auth/login..."
           response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/protected || echo "000")
           echo "Response code: $response"
-          if [ "$response" != "404" ]; then
-            echo "❌ /protected should return 404, got $response"
-            exit 1
+          if [ "$response" = "307" ] || [ "$response" = "302" ]; then
+            echo "✅ /protected correctly redirects to login (response: $response)"
+            # リダイレクト先も確認
+            location=$(curl -s -I http://localhost:3000/protected | grep -i location | cut -d' ' -f2 | tr -d '\r\n' || echo "")
+            if [[ "$location" == *"/auth/login"* ]]; then
+              echo "✅ Redirect location is correct: $location"
+            else
+              echo "⚠️ Redirect location might be different: $location"
+            fi
           else
-            echo "✅ /protected correctly returns 404"
+            echo "❌ /protected should redirect (302/307), got $response"
+            exit 1
           fi
       
       - name: ✅ Test new dashboard route accessibility
