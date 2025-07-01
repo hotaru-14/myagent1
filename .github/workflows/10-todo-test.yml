@@ -101,6 +101,8 @@ jobs:
         run: npm run build
         env:
           NODE_ENV: production
+          NEXT_PUBLIC_SUPABASE_URL: "https://dummy.supabase.co"
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.dummy"
       
       - name: 📤 Upload build artifacts
         uses: actions/upload-artifact@v4
@@ -164,6 +166,9 @@ jobs:
       
       - name: 🔨 Build application
         run: npm run build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: "https://dummy.supabase.co"
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.dummy"
       
       - name: 🚀 Start application
         run: |
@@ -171,6 +176,8 @@ jobs:
           npx wait-on http://localhost:3000 --timeout 60000
         env:
           NODE_ENV: production
+          NEXT_PUBLIC_SUPABASE_URL: "https://dummy.supabase.co"
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.dummy"
       
       - name: ❌ Test old protected route returns 404
         run: |
