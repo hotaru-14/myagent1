@@ -21,7 +21,7 @@ export interface ChatError {
   code?: string;
   retryable: boolean;
   timestamp: string;
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
   originalError?: Error;
 }
 
@@ -48,7 +48,7 @@ export const DEFAULT_RETRY_CONFIG: RetryConfig = {
 /**
  * エラーを分類し、適切なChatErrorオブジェクトを作成
  */
-export function classifyError(error: unknown, context?: Record<string, any>): ChatError {
+export function classifyError(error: unknown, context?: Record<string, unknown>): ChatError {
   const timestamp = new Date().toISOString();
   
   if (error instanceof Error) {
@@ -217,8 +217,8 @@ export async function executeWithRetry<T>(
 /**
  * トランザクション的な操作の実行
  */
-export async function executeTransaction<T>(
-  operations: Array<() => Promise<any>>,
+export async function executeWithTransaction<T>(
+  operations: Array<() => Promise<T>>,
   onRollback?: (completedOperations: number) => Promise<void>
 ): Promise<T[]> {
   const results: T[] = [];
@@ -233,29 +233,23 @@ export async function executeTransaction<T>(
     
     return results;
   } catch (error) {
+    console.error(`💥 Transaction failed at operation ${completedOperations + 1}:`, error);
+    
     // ロールバック処理
     if (onRollback && completedOperations > 0) {
       try {
+        console.log(`🔄 Rolling back ${completedOperations} completed operations...`);
         await onRollback(completedOperations);
-        console.log(`🔄 Transaction rolled back: ${completedOperations} operations undone`);
+        console.log('✅ Rollback completed successfully');
       } catch (rollbackError) {
         console.error('❌ Rollback failed:', rollbackError);
-        // ロールバック失敗も元のエラーと一緒に記録
-        const originalError = classifyError(error);
-        const rollbackErrorInfo = classifyError(rollbackError);
-        
-        throw {
-          ...originalError,
-          message: `${originalError.message} (ロールバックも失敗: ${rollbackErrorInfo.message})`,
-          context: {
-            ...originalError.context,
-            rollbackError: rollbackErrorInfo
-          }
-        } as ChatError;
       }
     }
     
-    throw classifyError(error, { completedOperations });
+    throw classifyError(error, { 
+      completedOperations, 
+      totalOperations: operations.length 
+    });
   }
 }
 

@@ -392,16 +392,15 @@ export function useChatStorage() {
         isLoading: false 
       }))
 
-      // 会話リストを更新
-      await loadConversations()
-
+      // 会話リストを更新 (削除し、useEffectで自動的に更新される)
+      
       return data
     } catch (error) {
       console.error('❌ Error creating conversation with message pair:', error)
       handleError(error, 'create conversation with message pair')
       return null
     }
-  }, [supabase, handleError, loadConversations])
+  }, [supabase, handleError])
 
   // 特定の会話のメッセージを取得
   const loadMessages = useCallback(async (conversationId: string): Promise<Message[]> => {
@@ -445,15 +444,14 @@ export function useChatStorage() {
       console.log('🧹 [ChatStorage] Running cleanup after conversation deletion...');
       await manualCleanup();
 
-      // 会話リストを更新
-      await loadConversations()
+      // 会話リストを更新 (削除し、useEffectで自動的に更新される)
       
       return true
     } catch (error) {
       handleError(error, 'delete conversation')
       return false
     }
-  }, [supabase, handleError, loadConversations, manualCleanup])
+  }, [supabase, handleError, manualCleanup])
 
   // 会話のタイトルを更新
   const updateConversationTitle = useCallback(async (
@@ -476,15 +474,14 @@ export function useChatStorage() {
           : prev.currentConversation
       }))
 
-      // 会話リストを更新
-      await loadConversations()
+      // 会話リストを更新 (削除し、useEffectで自動的に更新される)
       
       return true
     } catch (error) {
       handleError(error, 'update conversation title')
       return false
     }
-  }, [supabase, handleError, loadConversations])
+  }, [supabase, handleError])
 
   // 初期化
   useEffect(() => {

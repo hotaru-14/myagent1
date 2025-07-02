@@ -199,7 +199,7 @@ export function ResearchErrorHandler({
       }, 8000);
       return () => clearTimeout(timer);
     }
-  }, [config.severity]);
+  }, [config.severity, handleDismiss]);
 
   const handleDismiss = React.useCallback(() => {
     setIsVisible(false);

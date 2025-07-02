@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useGlobalAgentState } from '@/lib/contexts/agent-context';
 import { useChatStorage } from './use-chat-storage';
 

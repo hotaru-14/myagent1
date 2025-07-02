@@ -11,6 +11,14 @@ interface OptimisticChatState {
   pendingMessageIds: Set<string>;
 }
 
+type OptimisticAction = 
+  | { type: 'ADD_USER_MESSAGE'; payload: { id: string; conversationId: string; agentId: string; content: string } }
+  | { type: 'ADD_AI_MESSAGE'; payload: { id: string; conversationId: string; agentId: string; content: string; isLoading?: boolean } }
+  | { type: 'UPDATE_MESSAGE'; payload: { id: string; updates: Partial<UIMessage> } }
+  | { type: 'REMOVE_MESSAGE'; payload: { id: string } }
+  | { type: 'SET_LOADING'; payload: { id: string; isLoading: boolean } }
+  | { type: 'SET_ERROR'; payload: { id: string; error: string } };
+
 interface UseOptimisticChatProps {
   initialMessages?: Message[];
   onSaveMessage?: (userContent: string, aiContent: string, agentId: string) => Promise<{ userMessage: Message; aiMessage: Message } | null>;
@@ -39,10 +47,7 @@ export function useOptimisticChat({
   // 楽観的更新の状態管理
   const [optimisticMessages, setOptimisticMessages] = useOptimistic(
     baseState.messages,
-    (currentMessages: UIMessage[], action: {
-      type: 'ADD_USER_MESSAGE' | 'ADD_AI_MESSAGE' | 'UPDATE_MESSAGE' | 'REMOVE_MESSAGE' | 'SET_LOADING' | 'SET_ERROR';
-      payload?: any;
-    }) => {
+    (currentMessages: UIMessage[], action: OptimisticAction) => {
       switch (action.type) {
         case 'ADD_USER_MESSAGE':
           return [

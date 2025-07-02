@@ -5,11 +5,6 @@ import { useChat } from '@ai-sdk/react';
 import { useConversationManager } from './use-conversation-manager';
 import { useGlobalAgentState } from '@/lib/contexts/agent-context';
 import { DEFAULT_AGENT_ID, getAgentById } from '@/lib/constants/agents';
-import { 
-  isResearchPlanMessage, 
-  isResearchProgressMessage, 
-  isResearchReportMessage 
-} from '@/lib/utils/research-message-utils';
 
 interface UseChatInputManagerProps {
   conversationId?: string;
@@ -39,7 +34,6 @@ export function useChatInputManager({
   
   const { currentAgent } = useGlobalAgentState();
   const {
-    saveMessageToConversation,
     setCurrentConversation,
     saveMessagePairToConversation
   } = useConversationManager({ 
@@ -164,7 +158,7 @@ export function useChatInputManager({
         }
       }
     };
-  }, [currentAgent, researchStreamingState.streamingStartTime, autoSave, saveMessagePairToConversation]);
+  }, [currentAgent, researchStreamingState.streamingStartTime, researchStreamingState.currentResearchPhase, autoSave, saveMessagePairToConversation]);
 
   const { 
     messages, 

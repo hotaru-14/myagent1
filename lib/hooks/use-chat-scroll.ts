@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect, MutableRefObject } from 'react';
+import { useRef, useEffect, useCallback, MutableRefObject } from 'react';
 
 /**
  * チャットメッセージの自動スクロール機能を提供するカスタムフック
@@ -96,7 +96,7 @@ export function useSmartChatScroll<T>(
     }
   };
 
-  const checkIfNearBottom = () => {
+  const checkIfNearBottom = useCallback(() => {
     if (ref.current) {
       const scrollContainer = ref.current.querySelector('[data-radix-scroll-area-viewport]') as HTMLElement;
       const element = scrollContainer || ref.current;
@@ -105,7 +105,7 @@ export function useSmartChatScroll<T>(
       const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
       isNearBottomRef.current = distanceFromBottom <= threshold;
     }
-  };
+  }, [threshold]);
 
   useEffect(() => {
     const element = ref.current;
@@ -129,7 +129,7 @@ export function useSmartChatScroll<T>(
     return () => {
       targetElement.removeEventListener('scroll', handleScroll);
     };
-  }, [dep, threshold]);
+  }, [dep, threshold, checkIfNearBottom]);
 
   return {
     ref,

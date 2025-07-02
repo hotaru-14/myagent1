@@ -42,16 +42,25 @@ export function FallbackNotification({
   const [isVisible, setIsVisible] = React.useState(true);
   const [isAnimating, setIsAnimating] = React.useState(false);
 
-  // 自動非表示機能
+  // 閉じる処理
+  const handleDismiss = React.useCallback(() => {
+    setIsAnimating(true);
+    setTimeout(() => {
+      setIsVisible(false);
+      onDismiss?.();
+    }, 150);
+  }, [onDismiss]);
+
+  // 自動非表示タイマー
   React.useEffect(() => {
-    if (!autoHide || fallbackReason.severity === 'critical') return;
+    if (autoHide && fallbackReason.severity !== 'critical') {
+      const timer = setTimeout(() => {
+        handleDismiss();
+      }, autoHideDelay);
 
-    const timer = setTimeout(() => {
-      handleDismiss();
-    }, autoHideDelay);
-
-    return () => clearTimeout(timer);
-  }, [autoHide, autoHideDelay, fallbackReason.severity]);
+      return () => clearTimeout(timer);
+    }
+  }, [autoHide, autoHideDelay, fallbackReason.severity, handleDismiss]);
 
   // 重要度に応じたスタイル設定
   const getNotificationStyle = React.useCallback((): NotificationStyleConfig => {
@@ -118,15 +127,6 @@ export function FallbackNotification({
         return fallbackReason.message;
     }
   }, [fallbackReason]);
-
-  // 閉じる処理
-  const handleDismiss = React.useCallback(() => {
-    setIsAnimating(true);
-    setTimeout(() => {
-      setIsVisible(false);
-      onDismiss?.();
-    }, 150);
-  }, [onDismiss]);
 
   // 元に戻す処理
   const handleUndo = React.useCallback(() => {
@@ -262,6 +262,13 @@ export function useFallbackNotifications() {
     notifications: []
   });
 
+  // 通知を削除
+  const dismissNotification = React.useCallback((id: string) => {
+    setState(prev => ({
+      notifications: prev.notifications.filter(n => n.id !== id)
+    }));
+  }, []);
+
   // 通知を追加
   const showNotification = React.useCallback((fallbackReason: FallbackReason) => {
     const id = Date.now().toString();
@@ -275,14 +282,7 @@ export function useFallbackNotifications() {
         dismissNotification(id);
       }, 3000);
     }
-  }, []);
-
-  // 通知を削除
-  const dismissNotification = React.useCallback((id: string) => {
-    setState(prev => ({
-      notifications: prev.notifications.filter(n => n.id !== id)
-    }));
-  }, []);
+  }, [dismissNotification]);
 
   // 全通知をクリア
   const clearAllNotifications = React.useCallback(() => {
