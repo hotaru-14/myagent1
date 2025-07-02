@@ -113,6 +113,22 @@ export function ChatHeader({
                 {subtitle || currentConversationTitle}
               </div>
             )}
+            
+            {/* WeatherAPI.com 帰属表示 - 気象エージェント使用時のみ */}
+            {currentAgent?.id === 'weatherAgent' && (
+              <div className="text-xs text-white/80 mt-1 drop-shadow-sm">
+                Powered by{' '}
+                <a 
+                  href="https://www.weatherapi.com/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-white/90 hover:text-white underline underline-offset-2 transition-colors duration-200"
+                  title="Weather API"
+                >
+                  WeatherAPI.com
+                </a>
+              </div>
+            )}
           </div>
         </div>
         
