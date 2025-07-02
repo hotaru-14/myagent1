@@ -4,7 +4,7 @@
 
 // データベーステーブルの型定義（agent_id削除後）
 export interface Conversation {
-  id: string
+  id: string  // UUID形式の永続ID
   user_id: string
   title: string
   created_at: string
@@ -23,27 +23,28 @@ export interface TemporaryConversation {
 // 会話の状態を表すユニオン型
 export type ConversationState = Conversation | TemporaryConversation
 
+// 新しいメッセージ作成用のデータ型
+export interface NewMessage {
+  conversation_id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  agent_id: string;
+}
+
+// メッセージの型定義
 export interface Message {
-  id: string
+  id: string  // UUID形式の永続ID
   conversation_id: string
-  agent_id: string  // エージェント情報はメッセージ単位で管理
+  agent_id: string  // メッセージを生成したエージェントのID
   role: 'user' | 'assistant'
   content: string
   created_at: string
 }
 
-// 新規作成用の型
+// 新しい会話作成用のデータ型
 export interface NewConversation {
-  user_id: string
-  title: string
-  // agent_id は不要（メッセージ単位で管理）
-}
-
-export interface NewMessage {
-  conversation_id: string
-  agent_id: string  // 必須フィールドとして追加
-  role: 'user' | 'assistant'
-  content: string
+  user_id: string;
+  title: string;
 }
 
 // 更新用の型
@@ -61,11 +62,32 @@ export interface ChatMessage {
   createdAt?: string
 }
 
-// 会話リスト表示用の拡張型（最後のエージェント情報付き）
+// UI用の拡張メッセージ型
+export interface UIMessage extends Message {
+  isLoading?: boolean;
+  error?: string;
+}
+
+// エラーハンドリング用の型
+export interface ChatError {
+  message: string;
+  code?: string;
+  timestamp: string;
+}
+
+// チャット状態の型定義
+export interface ChatState {
+  currentConversation: Conversation | null;
+  messages: Message[];
+  isLoading: boolean;
+  error: ChatError | null;
+}
+
+// 詳細情報付きの会話型（会話一覧表示用）
 export interface ConversationWithDetails extends Conversation {
-  last_message: string | null
-  last_message_at: string | null
-  last_agent_id: string | null  // 最後に使用されたエージェント
+  last_message?: string;
+  last_message_at?: string;
+  message_count?: number;
 }
 
 // 会話の詳細（メッセージ含む）
@@ -74,21 +96,6 @@ export interface ConversationDetail extends Conversation {
 }
 
 // チャットフック用の型（エージェント情報付き）
-export interface ChatState {
-  currentConversation: Conversation | null
-  conversations: ConversationWithDetails[]
-  currentAgentId: string  // 現在選択中のエージェント
-  isLoading: boolean
-  error: string | null
-}
-
-// API レスポンス用の型
-export interface ApiResponse<T> {
-  data: T | null
-  error: string | null
-}
-
-// チャット設定の型（エージェント情報付き）
 export interface ChatConfig {
   maxMessages?: number
   autoSave?: boolean

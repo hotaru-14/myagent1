@@ -7,6 +7,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { useEmptyConversationCleanup } from './use-empty-conversation-cleanup'
 import type { 
   Conversation, 
   Message, 
@@ -31,6 +32,19 @@ export function useChatStorage() {
     conversations: [],
     isLoading: false,
     error: null
+  })
+
+  // 空会話の自動クリーンアップを有効化
+  const { manualCleanup } = useEmptyConversationCleanup({
+    enabled: true,
+    intervalMinutes: 5, // 5分間隔
+    onCleanup: (deletedCount) => {
+      if (deletedCount > 0) {
+        console.log(`🧹 [ChatStorage] Auto-cleaned ${deletedCount} empty conversations`);
+        // クリーンアップ後、会話リストを再読み込み
+        loadConversations();
+      }
+    }
   })
 
   // エラーハンドリング
@@ -119,51 +133,55 @@ export function useChatStorage() {
     }
   }, [supabase, handleError])
 
-  // 空の会話をクリーンアップする専用関数
-  const cleanupEmptyConversations = useCallback(async (): Promise<void> => {
+  // 空の会話をクリーンアップ
+  const cleanupEmptyConversations = useCallback(async (): Promise<number> => {
+    try {
+      const { data, error } = await supabase.rpc('cleanup_empty_conversations')
+      
+      if (error) throw error
+      
+      console.log(`🧹 Cleaned up ${data} empty conversations`)
+      
+      return data || 0
+    } catch (error) {
+      handleError(error, 'cleanup empty conversations')
+      return 0
+    }
+  }, [supabase, handleError])
+
+  // 会話ID事前確定（一時ID廃止用）
+  const ensureConversationExists = useCallback(async (title?: string): Promise<string | null> => {
     try {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-      
-      // ステップ1: ユーザーの全会話を取得
-      const { data: allConversations } = await supabase
-        .from('conversations')
-        .select('id')
-        .eq('user_id', user.id)
-      
-      if (!allConversations || allConversations.length === 0) return
-      
-      // ステップ2: メッセージがある会話のIDを取得
-      const { data: messagesData } = await supabase
-        .from('messages')
-        .select('conversation_id')
-        .in('conversation_id', allConversations.map(c => c.id))
-      
-      const conversationIdsWithMessages = messagesData?.map(m => m.conversation_id) || []
-      
-      // ステップ3: メッセージがない会話を特定
-      const emptyConversationIds = allConversations
-        .filter(c => !conversationIdsWithMessages.includes(c.id))
-        .map(c => c.id)
-      
-      // ステップ4: 空の会話を削除
-      if (emptyConversationIds.length > 0) {
-        const { error } = await supabase
-          .from('conversations')
-          .delete()
-          .in('id', emptyConversationIds)
-        
-        if (!error) {
-          console.log(`🧹 Cleaned up ${emptyConversationIds.length} empty conversations`)
-        } else {
-          console.warn('Failed to cleanup empty conversations:', error)
-        }
+      if (!user) {
+        throw new Error('ユーザーが認証されていません')
       }
+
+      const { data, error } = await supabase.rpc('ensure_conversation_exists', {
+        p_user_id: user.id,
+        p_title: title || '新しい会話'
+      })
+
+      if (error) throw error
+
+      console.log(`✅ Conversation exists: ${data}`)
+      
+      // 5分後に空の場合は自動削除するためのタイムアウトを設定
+      setTimeout(async () => {
+        try {
+          console.log(`⏰ [ChatStorage] Checking if conversation ${data} is still empty after 5 minutes...`);
+          await manualCleanup();
+        } catch (err) {
+          console.warn('Failed to cleanup conversation after timeout:', err);
+        }
+      }, 5 * 60 * 1000); // 5分
+
+      return data
     } catch (error) {
-      console.warn('Warning: Failed to cleanup empty conversations:', error)
-      // エラーが発生しても処理は続行
+      handleError(error, 'ensure conversation exists')
+      return null
     }
-  }, [supabase])
+  }, [supabase, handleError, manualCleanup])
 
   // 会話リストを取得
   const loadConversations = useCallback(async (): Promise<ConversationWithDetails[]> => {
@@ -175,7 +193,11 @@ export function useChatStorage() {
         throw new Error('ユーザーが認証されていません')
       }
 
-      // シンプルに：メッセージがある会話のみを取得
+      // 空会話の事前クリーンアップを実行
+      console.log('🧹 Cleaning up empty conversations before loading...')
+      await cleanupEmptyConversations()
+
+      // メッセージがある会話のみを取得（空会話を自動的に除外）
       const { data, error } = await supabase
         .from('conversations')
         .select(`
@@ -198,24 +220,30 @@ export function useChatStorage() {
         return {
           ...conv,
           last_message: lastMessage?.content || null,
-          last_message_at: lastMessage?.created_at || null
+          last_message_at: lastMessage?.created_at || null,
+          message_count: messages.length // メッセージ数を明示的に追加
         }
       })
 
+      // 追加の安全チェック: メッセージ数が0の会話を除外
+      const validConversations = conversationsWithDetails.filter(conv => 
+        conv.message_count && conv.message_count > 0
+      )
+
       setState(prev => ({ 
         ...prev, 
-        conversations: conversationsWithDetails,
+        conversations: validConversations,
         isLoading: false 
       }))
 
-      console.log(`✅ Loaded ${conversationsWithDetails.length} conversations`)
-      return conversationsWithDetails
+      console.log(`✅ Loaded ${validConversations.length} valid conversations (${conversationsWithDetails.length - validConversations.length} empty conversations filtered out)`)
+      return validConversations
     } catch (error) {
       console.error('❌ Error loading conversations:', error)
       handleError(error, 'load conversations')
       return []
     }
-  }, [supabase, handleError])
+  }, [supabase, handleError, cleanupEmptyConversations])
 
   // 会話とメッセージを同時に保存（新しい会話の場合）
   const saveMessageWithConversation = useCallback(async (
@@ -287,6 +315,93 @@ export function useChatStorage() {
     }
   }, [supabase, handleError, loadConversations])
 
+  // 新機能：メッセージペア保存（競合状態解決用）
+  const saveMessagePair = useCallback(async (
+    conversationId: string,
+    userContent: string,
+    aiContent: string,
+    agentId: string
+  ): Promise<{ userMessage: Message; aiMessage: Message } | null> => {
+    setState(prev => ({ ...prev, isLoading: true, error: null }))
+    
+    try {
+      // トランザクション開始
+      const { data, error } = await supabase.rpc('save_message_pair', {
+        p_conversation_id: conversationId,
+        p_user_content: userContent,
+        p_ai_content: aiContent,
+        p_agent_id: agentId
+      })
+
+      if (error) throw error
+
+      console.log(`✅ Message pair saved to conversation: ${conversationId}`)
+      
+      // 会話の更新日時を更新
+      await supabase
+        .from('conversations')
+        .update({ updated_at: new Date().toISOString() })
+        .eq('id', conversationId)
+
+      setState(prev => ({ ...prev, isLoading: false }))
+      
+      return data
+    } catch (error) {
+      console.error('❌ Error saving message pair:', error)
+      handleError(error, 'save message pair')
+      return null
+    }
+  }, [supabase, handleError])
+
+  // 新機能：会話作成とメッセージペア保存を一つのトランザクションで実行
+  const createConversationWithMessagePair = useCallback(async (
+    userContent: string,
+    aiContent: string,
+    agentId: string,
+    title?: string
+  ): Promise<{ conversation: Conversation; userMessage: Message; aiMessage: Message } | null> => {
+    setState(prev => ({ ...prev, isLoading: true, error: null }))
+    
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) {
+        throw new Error('ユーザーが認証されていません')
+      }
+
+      // RPC関数を使用してトランザクション処理
+      const { data, error } = await supabase.rpc('create_conversation_with_message_pair', {
+        p_user_id: user.id,
+        p_title: title || userContent.slice(0, 30) || '新しい会話',
+        p_user_content: userContent,
+        p_ai_content: aiContent,
+        p_agent_id: agentId
+      })
+
+      if (error) throw error
+
+      console.log(`✅ New conversation created with message pair:`, {
+        conversationId: data.conversation.id,
+        userMessageId: data.userMessage.id,
+        aiMessageId: data.aiMessage.id
+      })
+
+      // 状態を更新
+      setState(prev => ({ 
+        ...prev, 
+        currentConversation: data.conversation,
+        isLoading: false 
+      }))
+
+      // 会話リストを更新 (削除し、useEffectで自動的に更新される)
+      
+      return data
+    } catch (error) {
+      console.error('❌ Error creating conversation with message pair:', error)
+      handleError(error, 'create conversation with message pair')
+      return null
+    }
+  }, [supabase, handleError])
+
   // 特定の会話のメッセージを取得
   const loadMessages = useCallback(async (conversationId: string): Promise<Message[]> => {
     try {
@@ -325,15 +440,18 @@ export function useChatStorage() {
         isLoading: false
       }))
 
-      // 会話リストを更新
-      await loadConversations()
+      // 削除後に空会話クリーンアップを実行
+      console.log('🧹 [ChatStorage] Running cleanup after conversation deletion...');
+      await manualCleanup();
+
+      // 会話リストを更新 (削除し、useEffectで自動的に更新される)
       
       return true
     } catch (error) {
       handleError(error, 'delete conversation')
       return false
     }
-  }, [supabase, handleError, loadConversations])
+  }, [supabase, handleError, manualCleanup])
 
   // 会話のタイトルを更新
   const updateConversationTitle = useCallback(async (
@@ -356,15 +474,14 @@ export function useChatStorage() {
           : prev.currentConversation
       }))
 
-      // 会話リストを更新
-      await loadConversations()
+      // 会話リストを更新 (削除し、useEffectで自動的に更新される)
       
       return true
     } catch (error) {
       handleError(error, 'update conversation title')
       return false
     }
-  }, [supabase, handleError, loadConversations])
+  }, [supabase, handleError])
 
   // 初期化
   useEffect(() => {
@@ -376,12 +493,16 @@ export function useChatStorage() {
     createConversation,
     saveMessage,
     saveMessageWithConversation,
+    saveMessagePair,
+    createConversationWithMessagePair,
+    ensureConversationExists,
     loadConversations,
     loadMessages,
     deleteConversation,
     updateConversationTitle,
     setCurrentConversation: (conversation: Conversation | null) => 
       setState(prev => ({ ...prev, currentConversation: conversation })),
-    cleanupEmptyConversations
+    cleanupEmptyConversations,
+    manualCleanup // 手動クリーンアップ機能を追加
   }
 } 

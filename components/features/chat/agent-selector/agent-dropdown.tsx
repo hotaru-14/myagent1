@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { ChevronDown, Bot, Zap } from 'lucide-react'
 import { AgentOption } from './agent-option'
 import type { Agent } from '@/lib/types/agent'
@@ -43,6 +43,13 @@ export function AgentDropdown({
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
+  const handleAgentSelect = useCallback((agentId: string) => {
+    if (disabled || isChanging) return
+    onAgentChange(agentId)
+    setIsOpen(false)
+    setFocusedIndex(-1)
+  }, [disabled, isChanging, onAgentChange])
+
   // Handle keyboard navigation
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
@@ -78,18 +85,11 @@ export function AgentDropdown({
 
     document.addEventListener('keydown', handleKeyDown)
     return () => document.removeEventListener('keydown', handleKeyDown)
-  }, [isOpen, focusedIndex, availableAgents])
+  }, [isOpen, focusedIndex, availableAgents, handleAgentSelect])
 
   const handleToggle = () => {
     if (disabled) return
     setIsOpen(!isOpen)
-    setFocusedIndex(-1)
-  }
-
-  const handleAgentSelect = (agentId: string) => {
-    if (disabled || isChanging) return
-    onAgentChange(agentId)
-    setIsOpen(false)
     setFocusedIndex(-1)
   }
 

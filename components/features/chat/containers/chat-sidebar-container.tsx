@@ -89,6 +89,8 @@ export const ChatSidebarContainer = memo(({
     }
   };
 
+
+
   // 会話データを履歴コンポーネント用にマッピング
   const historyConversations: ConversationWithDetails[] = conversations.map((conv: ConversationWithDetails) => ({
     id: conv.id,
@@ -98,7 +100,7 @@ export const ChatSidebarContainer = memo(({
     user_id: conv.user_id,
     last_message: conv.last_message,
     last_message_at: conv.last_message_at,
-    last_agent_id: conv.last_agent_id
+    message_count: conv.message_count
   }));
 
   return (

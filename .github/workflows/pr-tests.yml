@@ -1,0 +1,139 @@
+name: 🚀 PR Tests - Empty Conversation Cleanup
+
+# PR時の軽量テスト（必要最低限）
+on:
+  pull_request:
+    branches: [main, master]
+    types: [opened, synchronize, reopened]
+
+# 必要最低限の環境変数
+env:
+  NODE_VERSION: '18'
+  COVERAGE_THRESHOLD: 50  # 低めに設定
+
+jobs:
+  # 🎯 重要機能テスト（空の会話削除機能）
+  critical-feature-tests:
+    name: 🎯 Critical Feature Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: 📦 Checkout code
+        uses: actions/checkout@v4
+      
+      - name: 🏗️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: 📥 Install dependencies
+        run: npm ci --prefer-offline --no-audit
+      
+      - name: 🧪 Run empty conversation cleanup tests
+        run: |
+          echo "🧪 Testing empty conversation cleanup functionality..."
+          npm test -- tests/10-todo-test/unit/hooks/use-empty-conversation-cleanup.test.ts --verbose
+          npm test -- tests/10-todo-test/unit/database/empty-conversation-cleanup.test.ts --verbose
+
+  # 🔧 基本チェック（軽量版）
+  basic-checks:
+    name: 🔧 Basic Checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: 📦 Checkout code
+        uses: actions/checkout@v4
+      
+      - name: 🏗️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: 📥 Install dependencies
+        run: npm ci --prefer-offline --no-audit
+      
+      - name: 🔍 TypeScript check (specific files)
+        run: |
+          echo "🔍 Checking TypeScript for critical files..."
+          npx tsc --noEmit --project tsconfig.json
+      
+      - name: 🧹 Lint check (specific files)
+        run: |
+          echo "🧹 Linting critical files..."
+          npm run lint
+
+  # 🏗️ ビルドテスト（軽量版）
+  build-test:
+    name: 🏗️ Build Test
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    needs: basic-checks
+    steps:
+      - name: 📦 Checkout code
+        uses: actions/checkout@v4
+      
+      - name: 🏗️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: 📥 Install dependencies
+        run: npm ci --prefer-offline --no-audit
+      
+      - name: 🔨 Build application
+        run: |
+          echo "🔨 Building application..."
+          npm run build
+        env:
+          NODE_ENV: production
+          NEXT_PUBLIC_SUPABASE_URL: "https://dummy.supabase.co"
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.dummy"
+
+  # 📊 カバレッジチェック（重要機能のみ）
+  coverage-check:
+    name: 📊 Coverage Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: critical-feature-tests
+    steps:
+      - name: 📦 Checkout code
+        uses: actions/checkout@v4
+      
+      - name: 🏗️ Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: 📥 Install dependencies
+        run: npm ci --prefer-offline --no-audit
+      
+      - name: 📊 Run coverage for critical files
+        run: |
+          echo "📊 Checking coverage for critical functionality..."
+          npm test -- --coverage --collectCoverageFrom="lib/hooks/use-empty-conversation-cleanup.ts" tests/10-todo-test/unit/hooks/use-empty-conversation-cleanup.test.ts tests/10-todo-test/unit/database/empty-conversation-cleanup.test.ts --coverageThreshold='{"global":{"lines":'"$COVERAGE_THRESHOLD"',"functions":'"$COVERAGE_THRESHOLD"',"branches":'"$COVERAGE_THRESHOLD"',"statements":'"$COVERAGE_THRESHOLD"'}}'
+
+  # ✅ PR ステータス集約
+  pr-status:
+    name: ✅ PR Status
+    runs-on: ubuntu-latest
+    needs: [critical-feature-tests, basic-checks, build-test, coverage-check]
+    if: always()
+    steps:
+      - name: 📋 Check overall status
+        run: |
+          echo "=== PR テスト結果サマリー ==="
+          echo "🎯 重要機能テスト: ${{ needs.critical-feature-tests.result }}"
+          echo "🔧 基本チェック: ${{ needs.basic-checks.result }}"
+          echo "🏗️ ビルドテスト: ${{ needs.build-test.result }}"
+          echo "📊 カバレッジチェック: ${{ needs.coverage-check.result }}"
+          
+          if [[ "${{ needs.critical-feature-tests.result }}" == "success" && "${{ needs.basic-checks.result }}" == "success" && "${{ needs.build-test.result }}" == "success" && "${{ needs.coverage-check.result }}" == "success" ]]; then
+            echo "✅ すべてのテストが成功しました！PRをマージできます。"
+          else
+            echo "❌ 一部のテストが失敗しました。確認してください。"
+            exit 1
+          fi 

@@ -264,7 +264,7 @@ export const RESEARCH_BREAKPOINTS = {
 // ==========================================
 // エクスポート
 // ==========================================
-export default {
+const researchTheme = {
   light: LIGHT_RESEARCH_THEME,
   dark: DARK_RESEARCH_THEME,
   gradients: RESEARCH_GRADIENTS,
@@ -274,4 +274,6 @@ export default {
   generateCSSVariables: generateResearchCSSVariables,
   getClasses: getResearchClasses,
   breakpoints: RESEARCH_BREAKPOINTS,
-}; 
+};
+
+export default researchTheme; 
