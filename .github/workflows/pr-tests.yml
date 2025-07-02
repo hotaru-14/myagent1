@@ -33,8 +33,8 @@ jobs:
       - name: 🧪 Run empty conversation cleanup tests
         run: |
           echo "🧪 Testing empty conversation cleanup functionality..."
-          npx jest tests/10-todo-test/unit/hooks/use-empty-conversation-cleanup.test.ts --verbose
-          npx jest tests/10-todo-test/unit/database/empty-conversation-cleanup.test.ts --verbose
+          npm test -- tests/10-todo-test/unit/hooks/use-empty-conversation-cleanup.test.ts --verbose
+          npm test -- tests/10-todo-test/unit/database/empty-conversation-cleanup.test.ts --verbose
 
   # 🔧 基本チェック（軽量版）
   basic-checks:
@@ -57,13 +57,12 @@ jobs:
       - name: 🔍 TypeScript check (specific files)
         run: |
           echo "🔍 Checking TypeScript for critical files..."
-          npx tsc --noEmit lib/hooks/use-empty-conversation-cleanup.ts
-          npx tsc --noEmit lib/hooks/use-chat-storage.ts
+          npx tsc --noEmit --project tsconfig.json
       
       - name: 🧹 Lint check (specific files)
         run: |
           echo "🧹 Linting critical files..."
-          npx eslint lib/hooks/use-empty-conversation-cleanup.ts lib/hooks/use-chat-storage.ts --max-warnings 0 || true
+          npm run lint
 
   # 🏗️ ビルドテスト（軽量版）
   build-test:
@@ -115,7 +114,7 @@ jobs:
       - name: 📊 Run coverage for critical files
         run: |
           echo "📊 Checking coverage for critical functionality..."
-          npx jest --coverage --collectCoverageFrom="lib/hooks/use-empty-conversation-cleanup.ts" tests/10-todo-test/unit/hooks/use-empty-conversation-cleanup.test.ts tests/10-todo-test/unit/database/empty-conversation-cleanup.test.ts --coverageThreshold='{"global":{"lines":'"$COVERAGE_THRESHOLD"',"functions":'"$COVERAGE_THRESHOLD"',"branches":'"$COVERAGE_THRESHOLD"',"statements":'"$COVERAGE_THRESHOLD"'}}'
+          npm test -- --coverage --collectCoverageFrom="lib/hooks/use-empty-conversation-cleanup.ts" tests/10-todo-test/unit/hooks/use-empty-conversation-cleanup.test.ts tests/10-todo-test/unit/database/empty-conversation-cleanup.test.ts --coverageThreshold='{"global":{"lines":'"$COVERAGE_THRESHOLD"',"functions":'"$COVERAGE_THRESHOLD"',"branches":'"$COVERAGE_THRESHOLD"',"statements":'"$COVERAGE_THRESHOLD"'}}'
 
   # ✅ PR ステータス集約
   pr-status:

@@ -191,6 +191,11 @@ export function ResearchErrorHandler({
   const friendlyMessage = FRIENDLY_MESSAGES[error.type];
   const suggestions = RECOVERY_SUGGESTIONS[error.type];
 
+  const handleDismiss = React.useCallback(() => {
+    setIsVisible(false);
+    setTimeout(() => onDismiss?.(), 150);
+  }, [onDismiss]);
+
   // 自動非表示（重要度が低い場合）
   React.useEffect(() => {
     if (config.severity === 'low') {
@@ -200,11 +205,6 @@ export function ResearchErrorHandler({
       return () => clearTimeout(timer);
     }
   }, [config.severity, handleDismiss]);
-
-  const handleDismiss = React.useCallback(() => {
-    setIsVisible(false);
-    setTimeout(() => onDismiss?.(), 150);
-  }, [onDismiss]);
 
   const handleRetry = React.useCallback(() => {
     console.log(`🔄 Retrying research operation for error: ${error.type}`);

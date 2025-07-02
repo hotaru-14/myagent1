@@ -7,12 +7,11 @@ import { createClient } from '@/lib/supabase/client';
 
 // Supabaseクライアントのモック
 const mockRpc = jest.fn();
-const mockSupabaseClient = {
-  rpc: mockRpc
-};
 
 jest.mock('@/lib/supabase/client', () => ({
-  createClient: jest.fn(() => mockSupabaseClient)
+  createClient: jest.fn(() => ({
+    rpc: mockRpc
+  }))
 }));
 
 describe('Database: Empty Conversation Cleanup', () => {

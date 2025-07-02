@@ -3,21 +3,17 @@ import { useEmptyConversationCleanup } from '@/lib/hooks/use-empty-conversation-
 
 // Supabaseクライアントのモック
 const mockRpc = jest.fn();
-const mockCreateClient = jest.fn(() => ({
-  rpc: mockRpc,
-}));
 
 jest.mock('@/lib/supabase/client', () => ({
-  createClient: () => mockCreateClient(),
+  createClient: jest.fn(() => ({
+    rpc: mockRpc,
+  })),
 }));
-
-// タイマーのモック
-jest.useFakeTimers();
 
 describe('useEmptyConversationCleanup', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.clearAllTimers();
+    jest.useFakeTimers();
   });
 
   afterEach(() => {
