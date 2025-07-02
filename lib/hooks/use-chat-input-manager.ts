@@ -40,15 +40,15 @@ export function useChatInputManager({
   const { currentAgent } = useGlobalAgentState();
   const {
     saveMessageToConversation,
-    saveAiResponse,
-    setCurrentConversation
+    setCurrentConversation,
+    saveMessagePairToConversation
   } = useConversationManager({ 
     initialConversationId: conversationId, 
     autoSave 
   });
 
   // 研究エージェント用の設定計算
-  const chatConfig = useMemo(() => {
+  const chatConfig: Parameters<typeof useChat>[0] = useMemo(() => {
     const isResearchAgent = currentAgent?.id === 'researchAgent';
     const agentId = currentAgent?.id || DEFAULT_AGENT_ID;
     
@@ -77,44 +77,21 @@ export function useChatInputManager({
       },
       key: `chat-${currentAgent?.id || DEFAULT_AGENT_ID}`, // エージェント変更時に再初期化
       
-      // ストリーミング中のリアルタイム処理（研究エージェント拡張）
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      onChunk: isResearchAgent ? (chunk: any) => {
-        const now = Date.now();
-        
-        // 研究フェーズの検出と状態更新
-        if (chunk.content) {
-          const content = chunk.content;
-          
-          // 研究計画フェーズ検出
-          if (isResearchPlanMessage(content)) {
-            setResearchStreamingState(prev => ({
-              ...prev,
-              isResearchStreaming: true,
-              currentResearchPhase: 'planning',
-              streamingStartTime: prev.streamingStartTime || now,
-              lastProgressUpdate: now
-            }));
-          }
-          
-          // 検索進捗フェーズ検出  
-          else if (isResearchProgressMessage(content)) {
-            setResearchStreamingState(prev => ({
-              ...prev,
-              isResearchStreaming: true,
-              currentResearchPhase: 'searching',
-              lastProgressUpdate: now
-            }));
-          }
-          
-          // レポート生成フェーズ検出
-          else if (isResearchReportMessage(content)) {
-            setResearchStreamingState(prev => ({
-              ...prev,
-              currentResearchPhase: 'reporting',
-              lastProgressUpdate: now
-            }));
-          }
+      // 研究エージェント用ストリーミング進捗処理
+      onToolCall: currentAgent?.id === 'researchAgent' ? async ({ toolCall }) => {
+        if (toolCall.toolName === 'search_tavily' && researchStreamingState.currentResearchPhase !== 'searching') {
+          setResearchStreamingState(prev => ({
+            ...prev,
+            isResearchStreaming: true,
+            currentResearchPhase: 'searching',
+            lastProgressUpdate: Date.now()
+          }));
+        } else if (toolCall.toolName === 'search' && researchStreamingState.currentResearchPhase !== 'analyzing') {
+          setResearchStreamingState(prev => ({
+            ...prev,
+            currentResearchPhase: 'analyzing',
+            lastProgressUpdate: Date.now()
+          }));
         }
       } : undefined,
       
@@ -135,12 +112,12 @@ export function useChatInputManager({
           });
         }
         
-        // AI応答完了時に、ユーザーメッセージとAI応答を一括保存
+        // 新機能：メッセージペア保存（競合状態解決）
         if (autoSave && pendingUserMessageRef.current) {
           const pendingMessage = pendingUserMessageRef.current;
           const aiAgentId = currentAgent?.id || DEFAULT_AGENT_ID;
           
-          console.log(`[ChatInput] 💾 Starting message save process:`, {
+          console.log(`[ChatInput] 💾 Starting message pair save:`, {
             userMessage: {
               content: pendingMessage.content.slice(0, 50) + (pendingMessage.content.length > 50 ? '...' : ''),
               agentId: pendingMessage.agentId
@@ -153,24 +130,20 @@ export function useChatInputManager({
           });
           
           try {
-            // まずユーザーメッセージを保存
-            console.log(`[ChatInput] 📝 Saving user message with agentId: ${pendingMessage.agentId}`);
-            await saveMessageToConversation(
-              'user', 
-              pendingMessage.content, 
+            // メッセージペアを一つのトランザクションで保存
+            console.log(`[ChatInput] 🔄 Saving message pair with agentId: ${pendingMessage.agentId}`);
+            await saveMessagePairToConversation(
+              pendingMessage.content,
+              message.content,
               pendingMessage.agentId
             );
             
-            // 次にAI応答を保存
-            console.log(`[ChatInput] 🤖 Saving AI response with agentId: ${aiAgentId}`);
-            await saveAiResponse(message.content, aiAgentId);
-            
-            console.log(`[ChatInput] ✅ Messages saved successfully`);
+            console.log(`[ChatInput] ✅ Message pair saved successfully`);
             
             // 保存完了後、一時保存データをクリア
             pendingUserMessageRef.current = null;
           } catch (error) {
-            console.error('[ChatInput] ❌ Error saving messages:', error);
+            console.error('[ChatInput] ❌ Error saving message pair:', error);
             // エラー発生時も一時保存データをクリア
             pendingUserMessageRef.current = null;
           }
@@ -191,7 +164,7 @@ export function useChatInputManager({
         }
       }
     };
-  }, [currentAgent, researchStreamingState.streamingStartTime]);
+  }, [currentAgent, researchStreamingState.streamingStartTime, autoSave, saveMessagePairToConversation]);
 
   const { 
     messages, 

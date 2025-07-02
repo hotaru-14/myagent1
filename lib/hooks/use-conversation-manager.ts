@@ -4,7 +4,6 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useGlobalAgentState } from '@/lib/contexts/agent-context';
 import { useChatStorage } from './use-chat-storage';
 
-import { generateTempId, isTemporaryId } from '@/lib/utils/id-utils';
 import { getAgentById, DEFAULT_AGENT_ID } from '@/lib/constants/agents';
 
 interface UseConversationManagerProps {
@@ -18,9 +17,6 @@ export function useConversationManager({
 }: UseConversationManagerProps = {}) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
-  // 新しい会話作成時の会話IDを一時的に保存
-  const pendingConversationIdRef = useRef<string | null>(null);
 
   const {
     currentConversation,
@@ -28,11 +24,14 @@ export function useConversationManager({
     isLoading: storageLoading,
     error: storageError,
     saveMessage,
-    saveMessageWithConversation,
+    saveMessagePair,
+    createConversationWithMessagePair,
+    ensureConversationExists,
     loadMessages,
     deleteConversation,
     updateConversationTitle,
-    setCurrentConversation
+    setCurrentConversation,
+    manualCleanup
   } = useChatStorage();
 
   const { currentAgent, changeAgent } = useGlobalAgentState();
@@ -99,42 +98,139 @@ export function useConversationManager({
     }
   }, [conversations, setCurrentConversation, loadMessages, currentAgent, changeAgent]);
 
-  // 新しい会話を作成（一時的な状態のみ、DB保存なし）
+  // 新しい会話を作成（実際のDBレコードとして即座に作成）
   const createNewConversation = useCallback(async (title?: string) => {
     setError(null);
     
     try {
       // 現在の会話をクリアして新しい会話の準備
       setCurrentConversation(null);
-      pendingConversationIdRef.current = null;
       
       // デフォルトエージェント設定: 新規会話開始時はデフォルトエージェントに設定
       if (currentAgent?.id !== DEFAULT_AGENT_ID) {
         changeAgent(DEFAULT_AGENT_ID);
       }
 
-      // 一時的な会話IDを生成してローカル状態のみ設定
-      const tempId = generateTempId();
-      const temporaryConversation = {
-        id: tempId,
+      // 一時IDを使わず、実際の会話を即座に作成
+      const conversationId = await ensureConversationExists(title || '新しい会話');
+
+      if (!conversationId) {
+        throw new Error('Failed to create conversation');
+      }
+
+      const newConversation = {
+        id: conversationId,
+        user_id: '', // 実際のuser_idはサーバー側で設定される
         title: title || '新しい会話',
-        user_id: '', // 実際のユーザーIDは保存時に設定
-        created_at: '',
-        updated_at: ''
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       };
 
-      setCurrentConversation(temporaryConversation);
+      setCurrentConversation(newConversation);
       
-      return temporaryConversation;
+      return newConversation;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to create conversation';
       setError(errorMessage);
       console.error('Error creating conversation:', err);
       return null;
     }
-  }, [setCurrentConversation, currentAgent, changeAgent]);
+  }, [setCurrentConversation, currentAgent, changeAgent, ensureConversationExists]);
 
-  // メッセージを保存（会話作成も同時に行う場合）
+  // 新機能：メッセージペア保存（競合状態解決）
+  const saveMessagePairToConversation = useCallback(async (
+    userContent: string,
+    aiContent: string,
+    agentId?: string
+  ) => {
+    if (!autoSave) return null;
+
+    const resolvedAgentId = agentId || currentAgent?.id || DEFAULT_AGENT_ID;
+    
+    console.log(`[ConversationManager] 💾 Starting message pair save:`, {
+      userContentLength: userContent.length,
+      aiContentLength: aiContent.length,
+      agentId: resolvedAgentId,
+      conversation: {
+        id: currentConversation?.id,
+        exists: !!currentConversation
+      },
+      timestamp: new Date().toISOString()
+    });
+
+    setError(null);
+
+    try {
+      if (currentConversation?.id) {
+        // 既存の会話にメッセージペアを保存
+        console.log(`[ConversationManager] 📝 Saving message pair to existing conversation: ${currentConversation.id}`);
+        const result = await saveMessagePair(
+          currentConversation.id,
+          userContent,
+          aiContent,
+          resolvedAgentId
+        );
+        
+        console.log(`[ConversationManager] ✅ Message pair saved to existing conversation:`, {
+          conversationId: currentConversation.id,
+          userMessageId: result?.userMessage?.id,
+          aiMessageId: result?.aiMessage?.id,
+          agentId: resolvedAgentId
+        });
+        
+        return result;
+      } else {
+        // 新しい会話を作成し、同時にメッセージペアを保存
+        const agentName = currentAgent?.name || "AI";
+        const title = userContent.slice(0, 30) || `新しい${agentName}との会話`;
+        
+        console.log(`[ConversationManager] 🆕 Creating new conversation with message pair:`, {
+          title,
+          agentId: resolvedAgentId
+        });
+        
+        const result = await createConversationWithMessagePair(
+          userContent,
+          aiContent,
+          resolvedAgentId,
+          title
+        );
+        
+        if (result) {
+          console.log(`[ConversationManager] ✅ New conversation created with message pair:`, {
+            conversationId: result.conversation.id,
+            userMessageId: result.userMessage.id,
+            aiMessageId: result.aiMessage.id,
+            agentId: resolvedAgentId
+          });
+          
+          // 新しく作成された会話を現在の会話として設定
+          setCurrentConversation(result.conversation);
+          return result;
+        }
+        return null;
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to save message pair';
+      setError(errorMessage);
+      console.error(`[ConversationManager] ❌ Error saving message pair:`, {
+        error: errorMessage,
+        agentId: resolvedAgentId,
+        userContentLength: userContent.length,
+        aiContentLength: aiContent.length
+      });
+      return null;
+    }
+  }, [
+    autoSave, 
+    currentConversation, 
+    currentAgent, 
+    saveMessagePair,
+    createConversationWithMessagePair,
+    setCurrentConversation
+  ]);
+
+  // 従来のメッセージ保存関数（互換性のため残す）
   const saveMessageToConversation = useCallback(async (
     role: 'user' | 'assistant',
     content: string,
@@ -144,29 +240,18 @@ export function useConversationManager({
 
     const resolvedAgentId = agentId || currentAgent?.id || DEFAULT_AGENT_ID;
     
-    // Phase C: DB保存前のバリデーションとログ
-    console.log(`[ConversationManager] 💾 Starting message save:`, {
+    console.log(`[ConversationManager] 📝 Saving single message (legacy):`, {
       role,
       contentLength: content.length,
-      contentPreview: content.slice(0, 50) + (content.length > 50 ? '...' : ''),
-      agentId: {
-        provided: agentId,
-        current: currentAgent?.id,
-        resolved: resolvedAgentId
-      },
-      conversation: {
-        id: currentConversation?.id,
-        isTemporary: currentConversation ? isTemporaryId(currentConversation.id) : null
-      },
-      timestamp: new Date().toISOString()
+      agentId: resolvedAgentId,
+      conversationId: currentConversation?.id
     });
 
     setError(null);
 
     try {
-      if (currentConversation && !isTemporaryId(currentConversation.id)) {
-        // 既存の会話（永続ID）にメッセージを保存
-        console.log(`[ConversationManager] 📝 Saving to existing conversation: ${currentConversation.id}`);
+      if (currentConversation?.id) {
+        // 既存の会話にメッセージを保存
         const result = await saveMessage(
           currentConversation.id, 
           role, 
@@ -174,7 +259,7 @@ export function useConversationManager({
           resolvedAgentId
         );
         
-        console.log(`[ConversationManager] ✅ Message saved to existing conversation:`, {
+        console.log(`[ConversationManager] ✅ Single message saved:`, {
           conversationId: currentConversation.id,
           messageId: result?.id,
           agentId: resolvedAgentId
@@ -182,117 +267,15 @@ export function useConversationManager({
         
         return result;
       } else {
-        // 新しい会話を作成し、同時にメッセージを保存
-        // 一時的な会話またはcurrentConversationがnullの場合
-        const agentName = currentAgent?.name || "AI";
-        const title = currentConversation?.title || content.slice(0, 30) || `新しい${agentName}との会話`;
-        
-        console.log(`[ConversationManager] 🆕 Creating new conversation with message:`, {
-          title,
-          agentId: resolvedAgentId
-        });
-        
-        const result = await saveMessageWithConversation(
-          role, 
-          content, 
-          resolvedAgentId, 
-          title
-        );
-        
-        if (result) {
-          console.log(`[ConversationManager] ✅ New conversation created:`, {
-            conversationId: result.conversation.id,
-            messageId: result.message.id,
-            agentId: resolvedAgentId
-          });
-          
-          // 新しく作成された会話を現在の会話として設定
-          setCurrentConversation(result.conversation);
-          pendingConversationIdRef.current = result.conversation.id;
-          return result;
-        }
-        return null;
+        throw new Error('No conversation available for single message save');
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to save message';
       setError(errorMessage);
-      console.error(`[ConversationManager] ❌ Error saving message:`, {
+      console.error(`[ConversationManager] ❌ Error saving single message:`, {
         error: errorMessage,
         agentId: resolvedAgentId,
         role,
-        contentLength: content.length
-      });
-      return null;
-    }
-  }, [
-    autoSave, 
-    currentConversation, 
-    currentAgent, 
-    saveMessage, 
-    saveMessageWithConversation,
-    setCurrentConversation
-  ]);
-
-  // AI応答後の保存処理
-  const saveAiResponse = useCallback(async (content: string, agentId?: string) => {
-    if (!autoSave) return null;
-
-    const resolvedAgentId = agentId || currentAgent?.id || DEFAULT_AGENT_ID;
-    const conversationId = currentConversation?.id || pendingConversationIdRef.current;
-    
-    // Phase C: AI応答保存前のバリデーションとログ
-    console.log(`[ConversationManager] 🤖 Starting AI response save:`, {
-      contentLength: content.length,
-      contentPreview: content.slice(0, 100) + (content.length > 100 ? '...' : ''),
-      agentId: {
-        provided: agentId,
-        current: currentAgent?.id,
-        resolved: resolvedAgentId
-      },
-      conversationId: {
-        current: currentConversation?.id,
-        pending: pendingConversationIdRef.current,
-        resolved: conversationId
-      },
-      timestamp: new Date().toISOString()
-    });
-
-    try {
-      if (conversationId) {
-        console.log(`[ConversationManager] 📝 Saving AI response to conversation: ${conversationId}`);
-        const result = await saveMessage(
-          conversationId, 
-          'assistant', 
-          content, 
-          resolvedAgentId
-        );
-        
-        console.log(`[ConversationManager] ✅ AI response saved:`, {
-          conversationId,
-          messageId: result?.id,
-          agentId: resolvedAgentId,
-          contentLength: content.length
-        });
-        
-        // 保存後、一時的な会話IDをクリア
-        pendingConversationIdRef.current = null;
-        return result;
-      } else {
-        const error = 'No conversation ID available for saving AI response';
-        console.error(`[ConversationManager] ❌ ${error}:`, {
-          currentConversation: currentConversation?.id,
-          pendingConversationId: pendingConversationIdRef.current,
-          agentId: resolvedAgentId
-        });
-        throw new Error(error);
-      }
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to save AI response';
-      setError(errorMessage);
-      console.error(`[ConversationManager] ❌ Error saving AI response:`, {
-        error: errorMessage,
-        agentId: resolvedAgentId,
-        conversationId,
         contentLength: content.length
       });
       return null;
@@ -344,16 +327,16 @@ export function useConversationManager({
     conversations,
     isLoading: isLoading || storageLoading,
     error: error || storageError,
-    pendingConversationId: pendingConversationIdRef.current,
 
     // アクション
     loadConversationById,
     createNewConversation,
-    saveMessageToConversation,
-    saveAiResponse,
+    saveMessageToConversation, // 互換性のため残す
+    saveMessagePairToConversation, // 新機能：メッセージペア保存
     handleDeleteConversation,
     updateConversationTitle,
     setCurrentConversation,
-    getConversationMessages
+    getConversationMessages,
+    manualCleanup // 手動クリーンアップ機能を追加
   };
 } 
