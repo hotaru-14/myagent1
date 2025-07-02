@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createTool } from '@mastra/core/tools';
 import { z } from 'zod';
 
@@ -86,8 +87,8 @@ const getHistoryWeather = async (
     throw new Error('WEATHER_API_KEY environment variable not set');
   }
 
-  const historyData: any[] = [];
-  let currentDate = new Date(start);
+  const historyData: Record<string, any>[] = [];
+  const currentDate = new Date(start);
   
   // 日別にデータを取得
   while (currentDate <= end) {
@@ -135,7 +136,7 @@ const getHistoryWeather = async (
 };
 
 // レスポンスデータ処理
-function processHistoryData(dataArray: any[], includeHourly: boolean): HistoryWeatherResponse {
+function processHistoryData(dataArray: Record<string, any>[], includeHourly: boolean): HistoryWeatherResponse {
   if (dataArray.length === 0) {
     throw new Error('履歴データが見つかりません');
   }
@@ -182,7 +183,7 @@ function processHistoryData(dataArray: any[], includeHourly: boolean): HistoryWe
 
       // 時間別データを含める場合
       if (includeHourly && day.hour) {
-        historyDay.hourlyData = day.hour.map((hour: any) => ({
+        historyDay.hourlyData = day.hour.map((hour: Record<string, any>) => ({
           time: hour.time,
           temperature: hour.temp_c,
           feelsLike: hour.feelslike_c,

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createTool } from '@mastra/core/tools';
 import { z } from 'zod';
 
@@ -95,7 +96,7 @@ const getRealtimeWeather = async (
 };
 
 // レスポンスデータ処理
-function processRealtimeData(data: any): RealtimeWeatherResponse {
+function processRealtimeData(data: Record<string, any>): RealtimeWeatherResponse {
   const location = data.location;
   const current = data.current;
 

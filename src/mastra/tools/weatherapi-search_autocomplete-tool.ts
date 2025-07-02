@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createTool } from '@mastra/core/tools';
 import { z } from 'zod';
 
@@ -80,7 +81,7 @@ const searchLocation = async (
 };
 
 // レスポンスデータ処理
-function processSearchData(data: any[], maxResults: number): LocationSearchResponse {
+function processSearchData(data: Record<string, any>[], maxResults: number): LocationSearchResponse {
   if (!Array.isArray(data)) {
     throw new Error('無効な検索結果データです');
   }

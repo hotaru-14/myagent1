@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createTool } from '@mastra/core/tools';
 import { z } from 'zod';
 
@@ -133,7 +134,7 @@ const getForecastWeather = async (
 };
 
 // レスポンスデータ処理
-function processForecastData(data: any, includeHourly: boolean): ForecastWeatherResponse {
+function processForecastData(data: Record<string, any>, includeHourly: boolean): ForecastWeatherResponse {
   const location = data.location;
   const current = data.current;
   const forecast = data.forecast;
@@ -163,11 +164,11 @@ function processForecastData(data: any, includeHourly: boolean): ForecastWeather
       visibility: current.vis_km,
       isDay: current.is_day === 1
     },
-    forecast: forecast.forecastday.map((day: any) => {
+    forecast: forecast.forecastday.map((day: Record<string, any>) => {
       const dayData = day.day;
       const astro = day.astro;
       
-      const forecastDay: any = {
+      const forecastDay: Record<string, any> = {
         date: day.date,
         temperature: {
           max: dayData.maxtemp_c,
@@ -191,7 +192,7 @@ function processForecastData(data: any, includeHourly: boolean): ForecastWeather
 
       // 時間別データを含める場合
       if (includeHourly && day.hour) {
-        forecastDay.hourlyData = day.hour.map((hour: any) => ({
+        forecastDay.hourlyData = day.hour.map((hour: Record<string, any>) => ({
           time: hour.time,
           temperature: hour.temp_c,
           feelsLike: hour.feelslike_c,
