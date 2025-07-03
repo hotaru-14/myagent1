@@ -11,6 +11,7 @@ interface ConversationItemProps {
   onSelect: (conversation: ConversationWithDetails) => void;
   onDelete: (conversationId: string) => void;
   className?: string;
+  "data-conversation-id"?: string;
 }
 
 export function ConversationItem({
@@ -18,7 +19,8 @@ export function ConversationItem({
   isSelected = false,
   onSelect,
   onDelete,
-  className = ""
+  className = "",
+  "data-conversation-id": dataConversationId
 }: ConversationItemProps) {
   const handleSelect = () => {
     onSelect(conversation);
@@ -41,6 +43,7 @@ export function ConversationItem({
         className
       )}
       onClick={handleSelect}
+      data-conversation-id={dataConversationId}
     >
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0 flex-1">
@@ -61,6 +64,30 @@ export function ConversationItem({
         >
           <Trash2 className="h-3 w-3" />
         </Button>
+      </div>
+      
+      {/* 会話の詳細情報表示 */}
+      <div className="mt-1 text-xs text-gray-500">
+        {conversation.last_message && (
+          <div className="truncate">
+            最新: {conversation.last_message.slice(0, 50)}
+            {conversation.last_message.length > 50 ? '...' : ''}
+          </div>
+        )}
+        <div className="flex justify-between items-center mt-1">
+          <span>{conversation.message_count || 0}件のメッセージ</span>
+          <span>
+            {conversation.last_message_at 
+              ? new Date(conversation.last_message_at).toLocaleDateString('ja-JP', {
+                  month: 'short',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })
+              : '未送信'
+            }
+          </span>
+        </div>
       </div>
     </div>
   );

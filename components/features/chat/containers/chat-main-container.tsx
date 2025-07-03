@@ -115,11 +115,11 @@ export const ChatMainContainer = memo(({
       </div>
 
       {/* チャットメッセージエリア */}
-      <div className="flex-1 overflow-hidden bg-white p-4">
+      <div className="flex-1 overflow-hidden bg-white relative">
         {conversationError && (
           <ErrorMessage 
             message={conversationError}
-            className="mb-4"
+            className="absolute top-4 left-4 right-4 z-20"
           />
         )}
 
@@ -127,7 +127,8 @@ export const ChatMainContainer = memo(({
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           messages={messages as unknown as any[]}
           isLoading={isWaitingForAiResponse}
-          className="h-full"
+          conversationId={currentConversation?.id || selectedConversationId}
+          className="h-full p-4"
         />
       </div>
 
