@@ -343,10 +343,10 @@ export const researchAgent = new Agent({
   model: google("gemini-2.5-flash"),
   tools: { webSearchTool },
   memory: new Memory({
-    storage: new LibSQLStore({
-      // Turso (LibSQL) database for production, local file for development
-      url: process.env.TURSO_DATABASE_URL || 'file:../mastra.db',
-      authToken: process.env.TURSO_AUTH_TOKEN,
-    }),
+   storage: new LibSQLStore({
+     // Turso (LibSQL) database for production, local file for development
+     url: process.env.TURSO_DATABASE_URL || 'file:./.mastra/mastra.db',
+     authToken: process.env.TURSO_AUTH_TOKEN,
+   }),
   }),
 }); 
