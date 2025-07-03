@@ -8,15 +8,18 @@ import { weatherApiHistoryTool } from '../tools/weatherapi-history-tool';
 import { weatherApiSearchAutocompleteTool } from '../tools/weatherapi-search_autocomplete-tool';
 
 // ツール実行ログを出力するラッパー関数
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function createToolLogger(toolName: string, originalTool: any) {
   return {
     ...originalTool,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     execute: async (input: any) => {
       const timestamp = new Date().toISOString();
       console.log(`🔧 [${timestamp}] ツール実行開始: ${toolName}`);
       
       // ツールのinputスキーマに対応する部分のみを抽出
-      const toolInput = input.context || input;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const toolInput = (input as any).context || input;
       console.log(`📝 [${timestamp}] 入力パラメータ:`, JSON.stringify(toolInput, null, 2));
       
       try {
@@ -26,7 +29,7 @@ function createToolLogger(toolName: string, originalTool: any) {
         const duration = endTime - startTime;
         
         console.log(`✅ [${timestamp}] ツール実行完了: ${toolName} (${duration}ms)`);
-        console.log(`📤 [${timestamp}] 実行結果概要: ${typeof result === 'object' ? `${Object.keys(result).length}個のフィールド` : typeof result}`);
+        console.log(`📤 [${timestamp}] 実行結果概要: ${typeof result === 'object' && result !== null ? `${Object.keys(result).length}個のフィールド` : typeof result}`);
         
         return result;
       } catch (error) {
