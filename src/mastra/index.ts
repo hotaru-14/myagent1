@@ -16,7 +16,7 @@ try {
     },
     storage: new LibSQLStore({
       // Turso (LibSQL) database for production, local file for development
-      url: process.env.TURSO_DATABASE_URL || "file:../mastra.db",
+      url: process.env.TURSO_DATABASE_URL || "file:./.mastra/mastra.db",
       authToken: process.env.TURSO_AUTH_TOKEN,
     }),
     logger: new PinoLogger({
