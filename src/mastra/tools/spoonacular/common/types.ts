@@ -5,8 +5,6 @@
 // APIレスポンス、リクエストパラメータ、共通インターフェースを定義。
 // ================================================================
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-
 // ===========================================
 // 共通型定義
 // ===========================================
@@ -369,11 +367,9 @@ export interface RecipeDetailParams {
 
 /**
  * レシピ詳細情報（最も詳細）
+ * RandomRecipeと同等の構造
  */
-export interface RecipeDetailInfo extends RandomRecipe {
-  // RandomRecipeの全てのプロパティを継承
-  // 追加で詳細情報があれば定義
-}
+export type RecipeDetailInfo = RandomRecipe;
 
 /**
  * レシピ詳細情報APIレスポンス
@@ -389,7 +385,7 @@ export interface RecipeDetailResponse extends BaseApiResponse {
 /**
  * 各ツールの統一レスポンス型
  */
-export interface SpoonacularToolResponse<T = any> extends BaseApiResponse {
+export interface SpoonacularToolResponse<T = unknown> extends BaseApiResponse {
   action: 'search' | 'random' | 'byIngredients' | 'autocomplete' | 'getRecipe';
   query?: string;
   results: T;
@@ -407,7 +403,7 @@ export interface SpoonacularToolResponse<T = any> extends BaseApiResponse {
 export interface ApiError extends Error {
   status?: number;
   statusText?: string;
-  response?: any;
+  response?: unknown;
 }
 
 /**
@@ -417,7 +413,7 @@ export interface ErrorResponse extends BaseApiResponse {
   success: false;
   error: string;
   statusCode?: number;
-  details?: any;
+  details?: unknown;
 }
 
 // ===========================================
@@ -471,7 +467,7 @@ export interface RequestConfig {
 /**
  * APIクライアントレスポンス
  */
-export interface ApiClientResponse<T = any> {
+export interface ApiClientResponse<T = Record<string, unknown>> {
   data: T;
   headers: Headers;
   status: number;

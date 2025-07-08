@@ -350,7 +350,7 @@ export async function getRecipeInformation(id: number, params: Record<string, an
  * レスポンスに出典情報を追加
  * @param data - レスポンスデータ
  */
-export function addAttribution<T extends Record<string, any>>(data: T): T & { attribution: string } {
+export function addAttribution<T extends Record<string, unknown>>(data: T): T & { attribution: string } {
   return {
     ...data,
     attribution: SPOONACULAR_ATTRIBUTION.TEXT_VERSION

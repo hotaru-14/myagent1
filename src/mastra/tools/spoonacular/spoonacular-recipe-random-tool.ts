@@ -12,7 +12,7 @@ import { z } from 'zod';
 
 import { 
   getRandomRecipes, 
-  validateParams, 
+ 
   addAttribution 
 } from './common/api-client';
 
@@ -22,11 +22,11 @@ import {
   LOG_PREFIXES
 } from './common/constants';
 
-import {
-  RandomRecipeParams,
-  RandomRecipeResponse,
-  ApiError
-} from './common/types';
+  import {
+    RandomRecipeParams,
+    RandomRecipe,
+    ApiError
+  } from './common/types';
 
 // ===========================================
 // スキーマ定義
@@ -186,7 +186,7 @@ Spoonacular APIを使用したランダムレシピ取得ツール。
       
       // API呼び出し
       const response = await getRandomRecipes(randomParams);
-      const responseData = addAttribution(response.data);
+      const responseData = addAttribution(response.data) as unknown as { recipes: RandomRecipe[]; attribution: string };
       
       const executionTime = Date.now() - startTime;
       console.log(`${LOG_PREFIXES.RANDOM} 取得完了 (${executionTime}ms):`, {

@@ -21,11 +21,11 @@ import {
   LOG_PREFIXES
 } from './common/constants';
 
-import {
-  IngredientSearchParams,
-  IngredientSearchResponse,
-  ApiError
-} from './common/types';
+  import {
+    IngredientSearchParams,
+    IngredientSearchRecipe,
+    ApiError
+  } from './common/types';
 
 // ===========================================
 // スキーマ定義
@@ -220,12 +220,12 @@ Spoonacular APIを使用した食材ベース検索ツール。
       
       // API呼び出し
       const response = await searchRecipesByIngredients(searchParams);
-      const responseData = addAttribution(response.data);
+      const responseData = addAttribution(response.data) as unknown as { recipes: IngredientSearchRecipe[]; attribution: string };
       
       const executionTime = Date.now() - startTime;
       
              // 結果の統計情報を計算
-       const recipeStats = responseData.recipes?.map((recipe: any) => ({
+       const recipeStats = responseData.recipes?.map((recipe) => ({
          id: recipe.id,
          title: recipe.title,
          usedCount: recipe.usedIngredientCount,

@@ -17,15 +17,15 @@ import {
 } from './common/api-client';
 
 import {
-  SPOONACULAR_LIMITS,
+
   LOG_PREFIXES
 } from './common/constants';
 
-import {
-  AutocompleteParams,
-  AutocompleteResponse,
-  ApiError
-} from './common/types';
+  import {
+    AutocompleteParams,
+    AutocompleteSuggestion,
+    ApiError
+  } from './common/types';
 
 // ===========================================
 // スキーマ定義
@@ -223,15 +223,15 @@ Spoonacular APIを使用したレシピオートコンプリートツール。
       const executionTime = Date.now() - startTime;
       
       // 結果の統計情報
-      const suggestions = responseData.suggestions || [];
-      const uniqueTitles = new Set(suggestions.map((s: any) => s.title));
+      const suggestions = (responseData.suggestions as AutocompleteSuggestion[]) || [];
+      const uniqueTitles = new Set(suggestions.map((s) => s.title));
       
       console.log(`${LOG_PREFIXES.AUTOCOMPLETE} 補完完了 (${executionTime}ms):`, {
         suggestionsCount: suggestions.length,
         uniqueTitles: uniqueTitles.size,
-        hasImages: suggestions.filter((s: any) => s.imageType).length,
+        hasImages: suggestions.filter((s) => s.imageType).length,
         averageLength: suggestions.length > 0 
-          ? Math.round(suggestions.reduce((sum: number, s: any) => sum + s.title.length, 0) / suggestions.length)
+          ? Math.round(suggestions.reduce((sum: number, s) => sum + s.title.length, 0) / suggestions.length)
           : 0
       });
       

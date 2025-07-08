@@ -12,6 +12,34 @@ import { createTool } from "@mastra/core/tools"; // Mastra フレームワーク
 import { z } from "zod";                         // スキーマバリデーション用ライブラリ
 import { XMLParser } from 'fast-xml-parser';      // XML パーサー (Atom feed 解析用)
 
+// XMLパーサーの結果型を定義
+interface ArxivXMLEntry {
+  id: string;
+  title: string;
+  author?: ArxivAuthor | ArxivAuthor[];
+  summary: string;
+  published: string;
+  updated: string;
+  category?: ArxivCategory | ArxivCategory[];
+  link?: ArxivLink | ArxivLink[];
+  'arxiv:comment'?: string;
+  'arxiv:journal_ref'?: string;
+  'arxiv:doi'?: string;
+}
+
+interface ArxivAuthor {
+  name: string;
+}
+
+interface ArxivCategory {
+  '@_term': string;
+}
+
+interface ArxivLink {
+  '@_type': string;
+  '@_href': string;
+}
+
 /* ---------------------------------------------------------------
  * 1. arXiv API URL 構築関数
  * ------------------------------------------------------------- */
@@ -180,7 +208,7 @@ const searchArxivPapers = async (params: {
     // エントリーの解析
     const entries = Array.isArray(feed.entry) ? feed.entry : (feed.entry ? [feed.entry] : []);
     
-    const papers = entries.map((entry: any) => {
+    const papers = entries.map((entry: ArxivXMLEntry) => {
       // ID の抽出 (http://arxiv.org/abs/xxxx 形式)
       const id = entry.id?.replace('http://arxiv.org/abs/', '') || '';
       
@@ -188,7 +216,7 @@ const searchArxivPapers = async (params: {
       const authors: string[] = [];
       if (entry.author) {
         const authorList = Array.isArray(entry.author) ? entry.author : [entry.author];
-        authorList.forEach((author: any) => {
+        authorList.forEach((author: ArxivAuthor) => {
           if (author.name) {
             authors.push(author.name);
           }
@@ -199,7 +227,7 @@ const searchArxivPapers = async (params: {
       const categories: string[] = [];
       if (entry.category) {
         const categoryList = Array.isArray(entry.category) ? entry.category : [entry.category];
-        categoryList.forEach((cat: any) => {
+        categoryList.forEach((cat: ArxivCategory) => {
           if (cat['@_term']) {
             categories.push(cat['@_term']);
           }
@@ -211,7 +239,7 @@ const searchArxivPapers = async (params: {
       let abstractUrl = '';
       if (entry.link) {
         const linkList = Array.isArray(entry.link) ? entry.link : [entry.link];
-        linkList.forEach((link: any) => {
+        linkList.forEach((link: ArxivLink) => {
           if (link['@_type'] === 'application/pdf') {
             pdfUrl = link['@_href'] || '';
           } else if (link['@_type'] === 'text/html') {
@@ -306,7 +334,7 @@ export const arxivSearchTool = createTool({
         success: true,
       };
       
-    } catch (error: any) {
+          } catch (error: unknown) {
       console.error(`[arXiv Search] Error:`, error);
       return {
         papers: [],
@@ -314,7 +342,7 @@ export const arxivSearchTool = createTool({
         startIndex: 0,
         itemsPerPage: 0,
         success: false,
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
       };
     }
   },

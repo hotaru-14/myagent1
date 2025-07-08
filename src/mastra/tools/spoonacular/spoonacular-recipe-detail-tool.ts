@@ -20,11 +20,11 @@ import {
   LOG_PREFIXES
 } from './common/constants';
 
-import {
-  RecipeDetailParams,
-  RecipeDetailResponse,
-  ApiError
-} from './common/types';
+  import {
+    RecipeDetailParams,
+    RecipeDetailInfo,
+    ApiError
+  } from './common/types';
 
 // ===========================================
 // スキーマ定義
@@ -233,7 +233,7 @@ Spoonacular APIを使用したレシピ詳細情報取得ツール。
       
       // API呼び出し
       const response = await getRecipeInformation(context.recipeId, detailParams);
-      const responseData = addAttribution(response.data);
+      const responseData = addAttribution(response.data) as unknown as RecipeDetailInfo & { attribution: string };
       
       const executionTime = Date.now() - startTime;
       
@@ -249,7 +249,7 @@ Spoonacular APIを使用したレシピ詳細情報取得ツール。
         readyInMinutes: responseData.readyInMinutes,
         dietaryFeatures: analysis.dietaryInfo.length,
         hasNutrition: !!responseData.nutrition,
-        hasTaste: !!responseData.taste,
+        hasTaste: !!(responseData as any).taste,
         nutritionSummary: analysis.nutritionSummary
       });
       

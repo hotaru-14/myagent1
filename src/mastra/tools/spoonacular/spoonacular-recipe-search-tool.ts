@@ -25,12 +25,11 @@ import {
   LOG_PREFIXES
 } from './common/constants';
 
-import {
-  RecipeSearchParams,
-  RecipeSearchResponse,
-  SpoonacularToolResponse,
-  ApiError
-} from './common/types';
+  import {
+    RecipeSearchParams,
+    SearchResultRecipe,
+    ApiError
+  } from './common/types';
 
 // ===========================================
 // スキーマ定義
@@ -252,7 +251,11 @@ Spoonacular APIを使用したテキストベースレシピ検索ツール。
       
       // API呼び出し
       const response = await searchRecipes(searchParams);
-      const responseData = addAttribution(response.data);
+      const responseData = addAttribution(response.data) as unknown as { 
+        results: SearchResultRecipe[]; 
+        totalResults: number; 
+        attribution: string 
+      };
       
       const executionTime = Date.now() - startTime;
       console.log(`${LOG_PREFIXES.SEARCH} 検索完了 (${executionTime}ms):`, {
