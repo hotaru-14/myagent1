@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { InfoIcon, MessageCircle, Bot, Cloud, Search, History, MapPin, Sparkles } from "lucide-react";
+import { InfoIcon, MessageCircle, Bot, Cloud, Search, History, MapPin, Sparkles, ChefHat, Utensils, CookingPot, Beef } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -55,6 +55,38 @@ export default async function DashboardPage() {
       category: "研究",
       features: ["リアルタイム検索", "信頼性の高い情報源", "グラウンディングメタデータ"],
       status: "アクティブ"
+    },
+    {
+      name: "レシピ検索ツール",
+      description: "30万件以上のレシピデータベースから条件に合うレシピを検索",
+      icon: ChefHat,
+      category: "料理",
+      features: ["キーワード検索", "食事制限対応", "栄養価フィルタ", "料理ジャンル指定"],
+      status: "アクティブ"
+    },
+    {
+      name: "ランダムレシピツール",
+      description: "料理のインスピレーションを得るためのランダムレシピ生成",
+      icon: Utensils,
+      category: "料理",
+      features: ["ランダム取得", "タグフィルタ", "アイデア提供", "新しい挑戦"],
+      status: "アクティブ"
+    },
+    {
+      name: "食材活用ツール",
+      description: "手持ちの食材から作れるレシピを効率的に見つける",
+      icon: CookingPot,
+      category: "料理",
+      features: ["食材マッチング", "フードロス削減", "冷蔵庫整理", "ランキング機能"],
+      status: "アクティブ"
+    },
+    {
+      name: "レシピ詳細ツール",
+      description: "選択したレシピの包括的な栄養価・調理情報を提供",
+      icon: Beef,
+      category: "料理",
+      features: ["栄養価分析", "調理手順", "食材代替案", "カロリー計算"],
+      status: "アクティブ"
     }
   ];
 
@@ -76,6 +108,15 @@ export default async function DashboardPage() {
       icon: "🔍",
       tools: ["ウェブ検索"],
       capabilities: ["多角的調査", "信頼性評価", "詳細レポート", "検索計画立案"],
+      status: "オンライン"
+    },
+    {
+      id: "culinaryAgent",
+      name: "料理マスターエージェント",
+      description: "世界各国の料理とレシピに精通した料理研究家兼栄養士",
+      icon: "👨‍🍳",
+      tools: ["レシピ検索", "ランダムレシピ", "食材活用", "レシピ詳細"],
+      capabilities: ["レシピ提案", "栄養分析", "食材活用", "料理アドバイス", "文化的料理理解"],
       status: "オンライン"
     }
   ];
@@ -106,10 +147,23 @@ export default async function DashboardPage() {
 
       {/* 利用可能なエージェント */}
       <div>
-        <h2 className="font-bold text-2xl mb-4 flex items-center gap-2">
-          <Bot className="h-6 w-6 text-purple-600" />
-          利用可能なMastraエージェント
-        </h2>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+          <h2 className="font-bold text-2xl flex items-center gap-2">
+            <Bot className="h-6 w-6 text-purple-600" />
+            利用可能なMastraエージェント
+          </h2>
+          <div className="text-sm text-gray-500 flex items-center gap-1">
+            <span>Powered by</span>
+            <a
+              href="https://mastra.ai"
+              target="_blank"
+              className="font-medium text-purple-600 hover:underline"
+              rel="noreferrer"
+            >
+              Mastra AI Framework
+            </a>
+          </div>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {agents.map((agent) => (
             <Card key={agent.id} className="hover:shadow-lg transition-shadow duration-300">
@@ -152,10 +206,47 @@ export default async function DashboardPage() {
 
       {/* Mastraツール一覧 */}
       <div>
-        <h2 className="font-bold text-2xl mb-4 flex items-center gap-2">
-          <Sparkles className="h-6 w-6 text-blue-600" />
-          Mastraツール詳細
-        </h2>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+          <h2 className="font-bold text-2xl flex items-center gap-2">
+            <Sparkles className="h-6 w-6 text-blue-600" />
+            Mastraツール詳細
+          </h2>
+          <div className="text-sm text-gray-500 flex flex-wrap items-center gap-2 sm:gap-4">
+            <div className="flex items-center gap-1">
+              <span>Powered by</span>
+              <a
+                href="https://mastra.ai"
+                target="_blank"
+                className="font-medium text-blue-600 hover:underline"
+                rel="noreferrer"
+              >
+                Mastra
+              </a>
+            </div>
+            <div className="flex items-center gap-1">
+              <span>&</span>
+              <a
+                href="https://spoonacular.com"
+                target="_blank"
+                className="font-medium text-orange-600 hover:underline"
+                rel="noreferrer"
+              >
+                Spoonacular API
+              </a>
+            </div>
+            <div className="flex items-center gap-1">
+              <span>&</span>
+              <a
+                href="https://openweathermap.org"
+                target="_blank"
+                className="font-medium text-green-600 hover:underline"
+                rel="noreferrer"
+              >
+                OpenWeatherMap API
+              </a>
+            </div>
+          </div>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {mastraTools.map((tool) => (
             <Card key={tool.name} className="hover:shadow-lg transition-shadow duration-300">
@@ -173,7 +264,7 @@ export default async function DashboardPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  <Badge variant={tool.category === "天気" ? "default" : "secondary"} className="w-fit">
+                  <Badge variant={tool.category === "天気" || tool.category === "料理" ? "default" : "secondary"} className="w-fit">
                     {tool.category}
                   </Badge>
                   <div>

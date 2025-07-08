@@ -1,11 +1,44 @@
 import { google } from '@ai-sdk/google';
+import { openai } from '@ai-sdk/openai';
 import { Agent } from '@mastra/core/agent';
 import { Memory } from '@mastra/memory';
-import { LibSQLStore } from '@mastra/libsql';
+import { LibSQLStore, LibSQLVector } from '@mastra/libsql';
 import { weatherApiRealtimeTool } from '../tools/weatherapi-realtime-tool';
 import { weatherApiForecastTool } from '../tools/weatherapi-forecast-tool';
 import { weatherApiHistoryTool } from '../tools/weatherapi-history-tool';
 import { weatherApiSearchAutocompleteTool } from '../tools/weatherapi-search_autocomplete-tool';
+
+const memory = new Memory({
+  storage: new LibSQLStore({
+    url: process.env.TURSO_DATABASE_URL || "file:./.mastra/mastra.db",
+    authToken: process.env.TURSO_AUTH_TOKEN,
+  }),
+  vector: new LibSQLVector({
+    connectionUrl: "file:./.mastra/vector.db",
+  }),
+  embedder: openai.embedding('text-embedding-3-small'),
+  options: {
+    // 直近n件保持
+    lastMessages: 2,
+    // 意味記憶
+    semanticRecall: {
+      topK: 2,
+      messageRange: 2,
+      scope: "resource",
+    },
+    // 作業記憶
+    workingMemory: {
+      enabled: true,
+      scope: "resource",
+      template: `
+      # まとめ
+      **気温が一番高い都市**:
+      **気温が一番低い都市**:
+      `,
+    }
+  }
+})
+
 
 // ツール実行ログを出力するラッパー関数
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -169,11 +202,5 @@ After fulfilling the primary request, autonomously anticipate the user's next qu
     weatherApiHistoryTool: loggedWeatherApiHistoryTool,
     weatherApiSearchAutocompleteTool: loggedWeatherApiSearchAutocompleteTool
   },
-  memory: new Memory({
-    storage: new LibSQLStore({
-      // Turso (LibSQL) database for production, local file for development
-      url: process.env.TURSO_DATABASE_URL || 'file:./.mastra/mastra.db',
-      authToken: process.env.TURSO_AUTH_TOKEN,
-    }),
-  }),
+  memory: memory,
 });

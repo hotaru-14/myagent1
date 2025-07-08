@@ -2,7 +2,40 @@ import { Agent } from "@mastra/core/agent";
 import { google } from "@ai-sdk/google";
 import { webSearchTool } from "../tools/web-search-tool";
 import { Memory } from "@mastra/memory";
-import { LibSQLStore } from "@mastra/libsql";
+import { LibSQLStore, LibSQLVector } from "@mastra/libsql";
+import { openai } from "@ai-sdk/openai";
+
+const memory = new Memory({
+   storage: new LibSQLStore({
+     url: process.env.TURSO_DATABASE_URL || "file:./.mastra/mastra.db",
+     authToken: process.env.TURSO_AUTH_TOKEN,
+   }),
+   vector: new LibSQLVector({
+     connectionUrl: "file:./.mastra/vector.db",
+   }),
+   embedder: openai.embedding('text-embedding-3-small'),
+   options: {
+     // 直近n件保持
+     lastMessages: 2,
+     // 意味記憶
+     semanticRecall: {
+       topK: 2,
+       messageRange: 2,
+       scope: "resource",
+     },
+     // 作業記憶
+     workingMemory: {
+       enabled: true,
+       scope: "resource",
+       template: `
+       # まとめ
+       **調査したトピック1**:
+       **調査したトピック2**:
+       **調査したトピック3**:
+       `,
+     }
+   }
+ })
 
 export const researchAgent = new Agent({
   name: "自律的研究エージェント",
@@ -342,11 +375,5 @@ export const researchAgent = new Agent({
 `,
   model: google("gemini-2.5-flash"),
   tools: { webSearchTool },
-  memory: new Memory({
-   storage: new LibSQLStore({
-     // Turso (LibSQL) database for production, local file for development
-     url: process.env.TURSO_DATABASE_URL || 'file:./.mastra/mastra.db',
-     authToken: process.env.TURSO_AUTH_TOKEN,
-   }),
-  }),
+  memory: memory,
 }); 

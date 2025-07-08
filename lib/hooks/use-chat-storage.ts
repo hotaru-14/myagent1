@@ -95,6 +95,7 @@ export function useChatStorage() {
       handleError(error, 'create conversation')
       return null
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [supabase, handleError])
 
   // メッセージを保存
