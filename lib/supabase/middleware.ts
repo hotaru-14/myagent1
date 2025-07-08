@@ -54,6 +54,9 @@ export async function updateSession(request: NextRequest) {
     // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone();
     url.pathname = "/auth/login";
+    // 元のURLをnextパラメータとして保存（クエリパラメータも含む）
+    const originalPath = request.nextUrl.pathname + request.nextUrl.search;
+    url.searchParams.set("next", originalPath);
     return NextResponse.redirect(url);
   }
 
