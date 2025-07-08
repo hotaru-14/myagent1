@@ -1,35 +1,24 @@
 import { Mastra } from '@mastra/core/mastra';
 import { PinoLogger } from '@mastra/loggers';
-import { LibSQLStore } from '@mastra/libsql';
 import { weatherWorkflow } from './workflows/weather-workflow';
 import { weatherAgent } from './agents/weather-agent';
 import { researchAgent } from './agents/research-agent';
+import { culinaryAgent } from './agents/culinary-agent';
 
 let mastra: Mastra | null = null;
 
-try {
-  mastra = new Mastra({
-    workflows: { weatherWorkflow },
-    agents: { 
-      weatherAgent,
-      researchAgent
-    },
-    storage: new LibSQLStore({
-      // Turso (LibSQL) database for production, local file for development
-      url: process.env.TURSO_DATABASE_URL || "file:./.mastra/mastra.db",
-      authToken: process.env.TURSO_AUTH_TOKEN,
-    }),
-    logger: new PinoLogger({
-      name: 'Mastra',
-      level: 'info',
-    }),
-  });
-} catch (error) {
-  console.error('Failed to initialize Mastra:', error);
-  // OpenTelemetryエラーの場合でも動作を継続
-  if (error instanceof Error && error.message.includes('@opentelemetry/api')) {
-    console.warn('OpenTelemetry dependency issue detected, but continuing...');
-  }
-}
+mastra = new Mastra({
+  workflows: { weatherWorkflow },
+  agents: { 
+    weatherAgent,
+    researchAgent,
+    culinaryAgent
+  },
+  logger: new PinoLogger({
+    name: 'Mastra',
+    level: 'info',
+  }),
+});
+
 
 export { mastra };
