@@ -16,7 +16,8 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
-export function LoginForm({
+// useSearchParamsを使用する部分を分離
+function LoginFormContent({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
@@ -119,4 +120,12 @@ export function LoginForm({
       </Card>
     </div>
   );
+}
+
+// メインのLoginFormコンポーネント
+export function LoginForm({
+  className,
+  ...props
+}: React.ComponentPropsWithoutRef<"div">) {
+  return <LoginFormContent className={className} {...props} />;
 }
